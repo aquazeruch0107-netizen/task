@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>タスク管理アプリ</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-512.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a6fa5">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+    <style>
+        :root{--primary:#4a6fa5;--primary-light:#e8eff9;--primary-dark:#3a5a8a;--bg:#f7f8fa;--surface:#fff;--text:#2c3e50;--text-sub:#6c757d;--border:#e2e6ea;--danger:#dc3545;--warning:#ffc107;--success:#28a745;--holiday:#e91e63;--sat-bg:#e3f2fd;--sun-bg:#fce4ec;--today-bg:#fff3cd}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        html,body{height:100%;overflow:hidden}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);display:flex;justify-content:center;color:var(--text)}
+        .container{width:100%;max-width:1200px;background:var(--surface);display:flex;flex-direction:column;height:100vh;height:100dvh}
+        .header{background:var(--primary);color:#fff;padding:14px 20px;flex-shrink:0;text-align:center}
+        .header h1{font-size:1.15em;font-weight:700}
+
+        /* 通知バナー（3段階） */
+        .alert-banner{padding:10px 20px;text-align:center;font-size:.85em;font-weight:600;flex-shrink:0;display:none;cursor:pointer;align-items:center;justify-content:center;gap:8px}
+        .alert-banner.visible{display:flex}
+        .alert-banner.level-today{background:linear-gradient(135deg,#dc3545,#ff6b6b);color:#fff}
+        .alert-banner.level-tomorrow{background:linear-gradient(135deg,#ff9a9e,#fecfef);color:#333}
+        .alert-banner.level-soon{background:linear-gradient(135deg,#a1c4fd,#c2e9fb);color:#333}
+        .alert-banner .close-alert{background:rgba(255,255,255,.3);border:none;color:inherit;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+        /* 通知設定バー */
+        .notify-setup-bar{background:var(--primary-light);color:var(--primary);padding:10px 20px;text-align:center;font-size:.8em;font-weight:600;flex-shrink:0;display:none;cursor:pointer;align-items:center;justify-content:center;gap:8px}
+        .notify-setup-bar.visible{display:flex}
+        .notify-setup-bar button{background:var(--primary);color:#fff;border:none;padding:4px 12px;border-radius:6px;font-size:.85em;font-weight:600;cursor:pointer}
+
+        .screen{display:none;flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch}
+        .screen.active{display:flex;flex-direction:column}
+        .home-content{padding:16px;flex:1;overflow-y:auto}
+        .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+        .stat-item{color:#fff;padding:14px 6px;border-radius:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+        .stat-item.pending{background:linear-gradient(135deg,#ff9a9e,#fad0c4)}
+        .stat-item.completed{background:linear-gradient(135deg,#84fab0,#8fd3f4)}
+        .stat-item.total{background:linear-gradient(135deg,#a1c4fd,#c2e9fb)}
+        .stat-item strong{font-size:1.6em;display:block;line-height:1.2}
+        .stat-item span{font-size:.75em;opacity:.9}
+        .home-section{background:var(--bg);border-radius:12px;padding:14px;margin-bottom:12px}
+        .home-section h3{color:var(--text);margin-bottom:10px;font-size:.95em}
+        .today-task-item{background:var(--surface);padding:10px 12px;border-radius:8px;margin-bottom:6px;border-left:4px solid var(--primary);display:flex;justify-content:space-between;align-items:center;gap:8px}
+        .today-task-item:last-child{margin-bottom:0}
+        .today-task-item.overdue{border-left-color:var(--danger);background:#fff5f5}
+        .today-task-item.tomorrow{border-left-color:var(--warning);background:#fffbf0}
+        .today-task-title{font-weight:600;font-size:.9em;color:var(--text)}
+        .today-task-info{display:flex;align-items:center;gap:6px;flex-shrink:0}
+        .empty-message{text-align:center;color:var(--text-sub);padding:16px;font-size:.85em}
+        .list-controls{padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex-shrink:0}
+        .btn{padding:8px 14px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;white-space:nowrap;-webkit-appearance:none}
+        .btn-primary{background:var(--primary);color:#fff}
+        .btn-primary:hover{background:var(--primary-dark)}
+        .btn-secondary{background:var(--text-sub);color:#fff}
+        .btn-danger{background:var(--danger);color:#fff}
+        .btn-outline{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
+        .filter-btn{background:var(--surface);color:var(--text);border:1.5px solid var(--border);padding:6px 10px;font-size:12px}
+        .filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+        .list-content{padding:16px;flex:1;overflow-y:auto}
+        .task-item{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+        .task-item.overdue{border-color:var(--danger);border-width:2px;background:#fff5f5}
+        .task-item.tomorrow{border-color:var(--warning);border-width:2px;background:#fffbf0}
+        .task-checkbox{width:20px;height:20px;cursor:pointer;accent-color:var(--primary);flex-shrink:0}
+        .task-content{flex:1;min-width:0}
+        .task-title{font-size:.95em;font-weight:600;margin-bottom:3px;word-break:break-word}
+        .task-item.completed .task-title{text-decoration:line-through;color:var(--text-sub)}
+        .task-meta{display:flex;gap:6px;font-size:.75em;color:var(--text-sub);flex-wrap:wrap;align-items:center}
+        .priority-badge{padding:2px 7px;border-radius:20px;font-size:.7em;font-weight:600}
+        .priority-high{background:var(--danger);color:#fff}
+        .priority-medium{background:var(--warning);color:#000}
+        .priority-low{background:var(--success);color:#fff}
+        .task-actions{display:flex;gap:4px;flex-shrink:0}
+        .task-actions .btn{padding:6px 10px;font-size:11px}
+        .calendar-content{padding:8px;flex:1;overflow:hidden;display:flex;flex-direction:column}
+        #calendar{background:var(--surface);flex:1;min-height:0}
+        .fc .fc-day-sat{background-color:var(--sat-bg)!important}
+        .fc .fc-day-sun{background-color:var(--sun-bg)!important}
+        .fc .fc-day-today{background-color:var(--today-bg)!important}
+        .fc .fc-holiday{background-color:var(--sun-bg)!important}
+        .fc .fc-toolbar .fc-button-group:not(.fc-prev-button):not(.fc-next-button),.fc .fc-today-button{display:none!important}
+        .fc .fc-toolbar-title{white-space:nowrap!important;font-size:1em!important}
+        .fc .fc-prev-button,.fc .fc-next-button{background:var(--primary)!important;border:none!important;border-radius:8px!important;padding:5px 10px!important;font-size:.85em!important}
+        .fc .fc-daygrid-day-frame{min-height:70px!important;max-height:70px!important;overflow:hidden!important;position:relative!important}
+        .fc .fc-daygrid-day-top{position:relative!important;height:100%!important}
+        .fc .fc-daygrid-day-number{position:absolute!important;top:2px!important;right:4px!important;padding:0!important;font-size:.8em!important;font-weight:700!important;z-index:2!important;line-height:1!important}
+        .fc-holiday-name{position:absolute!important;bottom:2px!important;left:3px!important;right:3px!important;font-size:.55em!important;color:var(--holiday)!important;line-height:1.1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;z-index:1!important;pointer-events:none!important}
+        .fc .fc-daygrid-day-events{position:absolute!important;top:18px!important;left:2px!important;right:2px!important;bottom:16px!important;max-height:none!important;overflow:hidden!important}
+        .fc .fc-daygrid-event{font-size:.6em!important;padding:1px 2px!important;margin:1px 0!important;border-radius:2px!important;line-height:1.2!important}
+        .bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:calc(env(safe-area-inset-bottom) + 6px);padding-top:6px}
+        .nav-btn{flex:1;padding:8px 0;background:transparent;border:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--text-sub);display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;justify-content:center}
+        .nav-btn .nav-icon{font-size:1.4em;line-height:1}
+        .nav-btn.active{color:var(--primary);background:var(--primary-light);border-radius:8px;margin:0 4px}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center;padding:20px}
+        .modal.active{display:flex}
+        .modal-content{background:var(--surface);border-radius:16px;width:100%;max-width:480px;box-shadow:0 10px 40px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+        .modal-header{padding:18px 20px 0;font-size:1.2em;font-weight:700;color:var(--text);display:flex;justify-content:space-between;align-items:center;gap:10px}
+        .modal-header .date-badge{font-size:.55em;background:var(--primary);color:#fff;padding:4px 10px;border-radius:20px;font-weight:500}
+        .modal-close-btn{background:transparent;border:none;font-size:1.5em;cursor:pointer;color:var(--text-sub);padding:0;line-height:1}
+        .modal-body{padding:16px 20px 20px}
+        .form-group{margin-bottom:14px;width:100%}
+        .form-group label{display:block;margin-bottom:5px;font-weight:600;color:var(--text);font-size:.85em}
+        .form-control{display:block;width:100%;height:46px;padding:0 14px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;font-family:inherit;background:#fafbfc;color:var(--text);-webkit-appearance:none;appearance:none;outline:none;transition:border-color .2s,background .2s;line-height:44px}
+        .form-control:focus{border-color:var(--primary);background:#fff}
+        select.form-control{line-height:normal;padding:12px 36px 12px 14px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c757d' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+        input[type="date"].form-control,input[type="time"].form-control{-webkit-appearance:none;min-height:46px;line-height:44px}
+        .form-control::placeholder{line-height:44px}
+        .form-row{display:flex;gap:10px;width:100%}
+        .form-row .form-group{flex:1;min-width:0}
+        .modal-actions{display:flex;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+        .modal-actions .btn{flex:1;padding:12px;font-size:15px}
+        .day-task-list{padding:0 20px}
+        .day-task-item{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:8px}
+        .day-task-item:hover{background:var(--primary-light);border-color:var(--primary)}
+        .day-task-item.overdue{border-color:var(--danger);background:#fff5f5}
+        .day-task-item.completed{opacity:.6}
+        .day-task-item.completed .day-task-title{text-decoration:line-through;color:var(--text-sub)}
+        .day-task-time{font-size:.85em;font-weight:700;color:var(--primary);min-width:45px;flex-shrink:0}
+        .day-task-title{flex:1;font-weight:600;color:var(--text);word-break:break-word;font-size:.9em}
+        .day-task-empty{text-align:center;padding:30px 16px;color:var(--text-sub)}
+        .day-task-empty .empty-icon{font-size:2em;margin-bottom:6px;opacity:.5}
+        .day-task-footer{padding:12px 20px 20px;display:flex;gap:8px}
+        .day-task-footer .btn{flex:1;padding:12px;font-size:14px}
+        @media(min-width:769px){
+            .container{border-radius:20px;margin:20px;height:calc(100vh - 40px);box-shadow:0 4px 24px rgba(0,0,0,.08)}
+            .modal-actions .btn{flex:none;padding:10px 24px}
+            .day-task-footer .btn{flex:none}
+            .fc .fc-daygrid-day-frame{min-height:100px!important;max-height:100px!important}
+            .fc .fc-toolbar-title{font-size:1.3em!important}
+            .fc .fc-daygrid-day-events{top:22px!important;bottom:20px!important}
+            .fc-holiday-name{font-size:.6em!important;bottom:3px!important}
+            .fc .fc-daygrid-day-number{font-size:.85em!important;top:3px!important}
+            .bottom-nav{padding-bottom:0;padding-top:0}
+            .nav-btn{min-height:44px}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 3段階アラートバナー -->
+        <div class="alert-banner" id="alertBanner">
+            <span id="alertBannerText"></span>
+            <button class="close-alert" onclick="dismissAlert()">&times;</button>
+        </div>
+
+        <!-- 通知許可促しバー -->
+        <div class="notify-setup-bar" id="notifySetupBar">
+            <span>🔔 デスクトップ通知を有効にすると、アプリを閉じていても期限をお知らせします</span>
+            <button onclick="requestPushPermission()">有効にする</button>
+        </div>
+
+        <div class="header"><h1 id="screenTitle">📋 タスク管理</h1></div>
+
+        <div class="screen active" id="homeScreen">
+            <div class="home-content">
+                <div class="stats">
+                    <div class="stat-item pending"><strong id="pendingCount">0</strong><span>未完了</span></div>
+                    <div class="stat-item completed"><strong id="completedCount">0</strong><span>完了</span></div>
+                    <div class="stat-item total"><strong id="totalCount">0</strong><span>合計</span></div>
+                </div>
+                <div class="home-section"><h3>📅 今日のタスク</h3><div id="todayTasksList"></div></div>
+                <div class="home-section"><h3>⚠️ 期限切れ・明日までのタスク</h3><div id="urgentTasksList"></div></div>
+                <div class="home-section">
+                    <h3>📲 カレンダー連携</h3>
+                    <p style="font-size:.8em;color:var(--text-sub);margin-bottom:10px;">未完了タスクをカレンダーアプリに登録して、OS標準のリマインダー通知を受け取れます（iPhone推奨）</p>
+                    <button class="btn btn-outline" onclick="exportICS()" style="width:100%">📥 .icsファイルをダウンロード</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="screen" id="listScreen">
+            <div class="list-controls">
+                <button class="btn btn-primary" onclick="openAddModal()">+ 追加</button>
+                <button class="btn filter-btn active" data-filter="all" onclick="setFilter('all')">すべて</button>
+                <button class="btn filter-btn" data-filter="pending" onclick="setFilter('pending')">未完了</button>
+                <button class="btn filter-btn" data-filter="completed" onclick="setFilter('completed')">完了</button>
+            </div>
+            <div class="list-content"><div id="taskList"></div></div>
+        </div>
+
+        <div class="screen" id="calendarScreen">
+            <div class="calendar-content"><div id="calendar"></div></div>
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-screen="home" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span>ホーム</span></button>
+            <button class="nav-btn" data-screen="list" onclick="switchScreen('list')"><span class="nav-icon">📝</span><span>リスト</span></button>
+            <button class="nav-btn" data-screen="calendar" onclick="switchScreen('calendar')"><span class="nav-icon">📅</span><span>カレンダー</span></button>
+        </nav>
+    </div>
+
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <div class="modal-header"><span id="modalTitle">タスク追加</span><button class="modal-close-btn" onclick="closeModal('taskModal')">&times;</button></div>
+            <div class="modal-body">
+                <form id="taskForm">
+                    <input type="hidden" id="taskId">
+                    <div class="form-group"><label for="taskTitle">タスク名 *</label><input type="text" id="taskTitle" class="form-control" required placeholder="タスク名を入力"></div>
+                    <div class="form-row">
+                        <div class="form-group"><label for="taskDueDate">期限日</label><input type="date" id="taskDueDate" class="form-control"></div>
+                        <div class="form-group"><label for="taskDueTime">期限時間</label><input type="time" id="taskDueTime" class="form-control"></div>
+                    </div>
+                    <div class="form-group"><label for="taskPriority">優先度</label><select id="taskPriority" class="form-control"><option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option></select></div>
+                    <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">キャンセル</button><button type="submit" class="btn btn-primary">保存</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="dayTasksModal">
+        <div class="modal-content">
+            <div class="modal-header"><span id="dayTasksTitle">📅 タスク一覧</span><button class="modal-close-btn" onclick="closeModal('dayTasksModal')">&times;</button></div>
+            <div style="padding:10px 20px 0;color:var(--text-sub);font-size:.85em;" id="dayTasksDateLabel"></div>
+            <div class="day-task-list" id="dayTasksList" style="margin-top:10px;"></div>
+            <div class="day-task-footer">
+                <button class="btn btn-primary" onclick="addTaskForDay()">+ タスクを追加</button>
+            </div>
+        </div>
+    </div>
+
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/ja.global.min.js'></script>
+    <script>
+        let tasks=[],currentFilter='all',currentScreen='home';
+        let selectedDayDate=null,calendar;
+        window._presetTime=null;
+
+        // 祝日計算
+        function getJapaneseHolidays(y){const h={};h[`${y}-01-01`]='元日';const d1=new Date(y,0,1);while(d1.getDay()!==1)d1.setDate(d1.getDate()+1);d1.setDate(d1.getDate()+7);h[fmt(d1)]='成人の日';h[`${y}-02-11`]='建国記念の日';h[`${y}-02-23`]='天皇誕生日';const v=Math.floor(20.8431+.242194*(y-1980)-Math.floor((y-1980)/4));h[`${y}-03-${String(v).padStart(2,'0')}`]='春分の日';h[`${y}-04-29`]='昭和の日';h[`${y}-05-03`]='憲法記念日';h[`${y}-05-04`]='みどりの日';h[`${y}-05-05`]='こどもの日';const d2=new Date(y,6,1);while(d2.getDay()!==1)d2.setDate(d2.getDate()+1);d2.setDate(d2.getDate()+14);h[fmt(d2)]='海の日';h[`${y}-08-11`]='山の日';const d3=new Date(y,8,1);while(d3.getDay()!==1)d3.setDate(d3.getDate()+1);d3.setDate(d3.getDate()+14);h[fmt(d3)]='敬老の日';const a=Math.floor(23.2488+.242194*(y-1980)-Math.floor((y-1980)/4));h[`${y}-09-${String(a).padStart(2,'0')}`]='秋分の日';const d4=new Date(y,9,1);while(d4.getDay()!==1)d4.setDate(d4.getDate()+1);d4.setDate(d4.getDate()+7);h[fmt(d4)]='スポーツの日';h[`${y}-11-03`]='文化の日';h[`${y}-11-23`]='勤労感謝の日';return h}
+        const holidaysCache={};
+        function getAllHolidays(){const y=new Date().getFullYear();for(let i=y-1;i<=y+2;i++){if(!holidaysCache[i])Object.assign(holidaysCache,getJapaneseHolidays(i))}return holidaysCache}
+        function fmt(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+        function fmtJP(ds){if(!ds)return '';return new Date(ds).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'})}
+        function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+        // LocalStorage
+        function saveTasks(){localStorage.setItem('tasks',JSON.stringify(tasks))}
+        function loadTasks(){const s=localStorage.getItem('tasks');if(s)tasks=JSON.parse(s)}
+
+        // CRUD
+        function addTask(t){t.id=Date.now();t.completed=false;t.createdAt=new Date().toISOString();tasks.push(t);saveTasks();refreshAll()}
+        function updateTask(id,u){const i=tasks.findIndex(t=>t.id===id);if(i!==-1){tasks[i]={...tasks[i],...u};saveTasks();refreshAll()}}
+        function deleteTask(id){if(confirm('削除しますか？')){tasks=tasks.filter(t=>t.id!==id);saveTasks();refreshAll();if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate)}}
+        function toggleTask(id){const t=tasks.find(x=>x.id===id);if(t){t.completed=!t.completed;saveTasks();refreshAll();if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate)}}
+        function refreshAll(){renderTasks();renderHome();updateStats();updateCalendar();checkAlerts();checkNotifySetup()}
+
+        // =============================================
+        // 🔔 3段階アラートバナー
+        // =============================================
+        function checkAlerts(){
+            const today=new Date();today.setHours(0,0,0,0);
+            const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
+            const in3=new Date(today);in3.setDate(in3.getDate()+3);
+            const todayStr=fmt(today),tmrStr=fmt(tmr),in3Str=fmt(in3);
+            const dismissed=localStorage.getItem('alertDismissedDate');
+
+            const todayTasks=tasks.filter(t=>!t.completed&&t.dueDate===todayStr);
+            const tmrTasks=tasks.filter(t=>!t.completed&&t.dueDate===tmrStr);
+            const soonTasks=tasks.filter(t=>!t.completed&&t.dueDate>tmrStr&&t.dueDate<=in3Str);
+
+            const banner=document.getElementById('alertBanner');
+            const text=document.getElementById('alertBannerText');
+
+            // 今日が最優先 → 明日 → 3日後の順
+            if(todayTasks.length>0&&dismissed!==todayStr+'-today'){
+                banner.className='alert-banner visible level-today';
+                const names=todayTasks.map(t=>t.title).slice(0,3).join('、');
+                text.textContent=`⚠️ 今日が期限: ${names}${todayTasks.length>3?` 他${todayTasks.length-3}件`:''}`;
+                banner.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};
+            }else if(tmrTasks.length>0&&dismissed!==todayStr+'-tomorrow'){
+                banner.className='alert-banner visible level-tomorrow';
+                const names=tmrTasks.map(t=>t.title).slice(0,3).join('、');
+                text.textContent=`🔔 明日が期限: ${names}${tmrTasks.length>3?` 他${tmrTasks.length-3}件`:''}`;
+                banner.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};
+            }else if(soonTasks.length>0&&dismissed!==todayStr+'-soon'){
+                banner.className='alert-banner visible level-soon';
+                const names=soonTasks.map(t=>t.title).slice(0,3).join('、');
+                text.textContent=`📋 3日後までに期限: ${names}${soonTasks.length>3?` 他${soonTasks.length-3}件`:''}`;
+                banner.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};
+            }else{
+                banner.className='alert-banner';
+            }
+        }
+
+        function dismissAlert(){
+            const todayStr=fmt(new Date());
+            const banner=document.getElementById('alertBanner');
+            // 現在のレベルを特定してdismissキーを保存
+            if(banner.classList.contains('level-today'))localStorage.setItem('alertDismissedDate',todayStr+'-today');
+            else if(banner.classList.contains('level-tomorrow'))localStorage.setItem('alertDismissedDate',todayStr+'-tomorrow');
+            else if(banner.classList.contains('level-soon'))localStorage.setItem('alertDismissedDate',todayStr+'-soon');
+            banner.className='alert-banner';
+        }
+
+        // =============================================
+        // 🔔 Web Push通知（PCデスクトップ通知）
+        // =============================================
+        async function registerServiceWorker(){
+            if(!('serviceWorker' in navigator))return null;
+            try{return await navigator.serviceWorker.register('/sw.js')}catch(e){console.warn('SW登録失敗:',e);return null}
+        }
+
+        function checkNotifySetup(){
+            const bar=document.getElementById('notifySetupBar');
+            if(!('Notification' in window)||!('serviceWorker' in navigator)){bar.classList.remove('visible');return}
+            if(Notification.permission==='granted'){bar.classList.remove('visible');return}
+            if(Notification.permission==='denied'){bar.classList.remove('visible');return}
+            // default のみ表示
+            bar.classList.add('visible');
+        }
+
+        async function requestPushPermission(){
+            if(!('Notification' in window)){alert('このブラウザは通知に対応していません');return}
+            const perm=await Notification.requestPermission();
+            if(perm==='granted'){
+                document.getElementById('notifySetupBar').classList.remove('visible');
+                new Notification('📋 タスク管理',{body:'通知が有効になりました！期限が近いタスクをお知らせします。',icon:'/icon-512.png'});
+                // Service Worker経由のPush通知も登録
+                const reg=await registerServiceWorker();
+                if(reg&&'PushManager' in window){
+                    // 注: 実際のPush配信にはVAPIDキーとバックエンドサーバーが必要
+                    // ここではブラウザ内通知のみ動作
+                }
+            }else{
+                document.getElementById('notifySetupBar').classList.remove('visible');
+            }
+        }
+
+        // アプリ起動時のブラウザ内通知チェック
+        function sendBrowserNotifications(){
+            if(Notification.permission!=='granted')return;
+            const today=new Date();today.setHours(0,0,0,0);
+            const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
+            const todayStr=fmt(today),tmrStr=fmt(tmr);
+            const lastNotified=localStorage.getItem('lastBrowserNotifyDate');
+            if(lastNotified===todayStr)return;
+
+            const todayTasks=tasks.filter(t=>!t.completed&&t.dueDate===todayStr);
+            const tmrTasks=tasks.filter(t=>!t.completed&&t.dueDate===tmrStr);
+
+            if(todayTasks.length>0){
+                new Notification('⚠️ 今日が期限',{body:`${todayTasks.length}件のタスクがあります`,icon:'/icon-512.png',tag:'task-today'});
+            }
+            if(tmrTasks.length>0){
+                setTimeout(()=>{
+                    new Notification('🔔 明日が期限',{body:`${tmrTasks.length}件のタスクがあります`,icon:'/icon-512.png',tag:'task-tomorrow'});
+                },todayTasks.length>0?3000:0);
+            }
+            if(todayTasks.length>0||tmrTasks.length>0){
+                localStorage.setItem('lastBrowserNotifyDate',todayStr);
+            }
+        }
+
+        // =============================================
+        // 📥 .ics カレンダーエクスポート
+        // =============================================
+        function exportICS(){
+            const pending=tasks.filter(t=>!t.completed&&t.dueDate);
+            if(pending.length===0){alert('未完了のタスクがありません');return}
+
+            const pad=n=>String(n).padStart(2,'0');
+            const toICSDate=(dateStr,timeStr)=>{
+                const d=new Date(dateStr);
+                const y=d.getFullYear(),m=pad(d.getMonth()+1),day=pad(d.getDate());
+                if(timeStr){
+                    const[h,min]=timeStr.split(':');
+                    return `${y}${m}${day}T${pad(h)}${pad(min)}00`;
+                }
+                return `${y}${m}${day}`;
+            };
+
+            let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//TaskApp//JA\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n';
+            pending.forEach(t=>{
+                const dtStart=toICSDate(t.dueDate,t.dueTime);
+                const isAllDay=!t.dueTime;
+                const uid=`task-${t.id}@taskapp`;
+                const summary=t.title.replace(/[,;]/g,' ');
+                const priority=t.priority==='high'?1:t.priority==='medium'?5:9;
+
+                ics+='BEGIN:VEVENT\r\n';
+                ics+=`UID:${uid}\r\n`;
+                ics+=`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z\r\n`;
+                if(isAllDay){
+                    ics+=`DTSTART;VALUE=DATE:${dtStart}\r\n`;
+                    // 終日イベントは翌日をENDに
+                    const next=new Date(t.dueDate);next.setDate(next.getDate()+1);
+                    ics+=`DTEND;VALUE=DATE:${toICSDate(fmt(next),null)}\r\n`;
+                }else{
+                    ics+=`DTSTART:${dtStart}\r\n`;
+                    // 1時間のイベントとして設定
+                    const endD=new Date(`${t.dueDate}T${t.dueTime}:00`);
+                    endD.setHours(endD.getHours()+1);
+                    ics+=`DTEND:${toICSDate(fmt(endD),pad(endD.getHours())+':'+pad(endD.getMinutes()))}\r\n`;
+                }
+                ics+=`SUMMARY:${summary}\r\n`;
+                ics+=`DESCRIPTION:優先度: ${{low:'低',medium:'中',high:'高'}[t.priority]}\r\n`;
+                ics+=`PRIORITY:${priority}\r\n`;
+                // リマインダー: 当日の朝9時（終日）または1時間前（時刻指定）
+                if(isAllDay){
+                    ics+='BEGIN:VALARM\r\nTRIGGER:-PT0S\r\nACTION:DISPLAY\r\nDESCRIPTION:今日が期限です\r\nEND:VALARM\r\n';
+                }else{
+                    ics+='BEGIN:VALARM\r\nTRIGGER:-PT1H\r\nACTION:DISPLAY\r\nDESCRIPTION:1時間後に期限です\r\nEND:VALARM\r\n';
+                }
+                ics+='END:VEVENT\r\n';
+            });
+            ics+='END:VCALENDAR\r\n';
+
+            const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+            const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');
+            a.href=url;
+            a.download='tasks.ics';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 画面切替
+        function switchScreen(s){
+            currentScreen=s;
+            document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+            document.getElementById(`${s}Screen`).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.screen===s));
+            document.getElementById('screenTitle').textContent={home:'📋 タスク管理',list:'📝 タスクリスト',calendar:'📅 カレンダー'}[s];
+            if(s==='calendar'&&calendar)setTimeout(()=>calendar.updateSize(),50);
+        }
+
+        // ホーム
+        function renderHome(){
+            const todayStr=fmt(new Date());
+            const todayTasks=tasks.filter(t=>t.dueDate===todayStr&&!t.completed).sort((a,b)=>(a.dueTime||'99:99').localeCompare(b.dueTime||'99:99'));
+            document.getElementById('todayTasksList').innerHTML=todayTasks.length?todayTasks.map(t=>homeTaskItem(t)).join(''):'<div class="empty-message">🎉 今日のタスクはありません</div>';
+            const now=new Date();now.setHours(0,0,0,0);const tmr=new Date(now);tmr.setDate(tmr.getDate()+1);
+            const urgent=tasks.filter(t=>{if(t.completed||!t.dueDate)return false;const d=new Date(t.dueDate);d.setHours(0,0,0,0);return d<=tmr}).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
+            document.getElementById('urgentTasksList').innerHTML=urgent.length?urgent.map(t=>homeTaskItem(t)).join(''):'<div class="empty-message">✅ 緊急のタスクはありません</div>';
+        }
+        function homeTaskItem(t){
+            const todayStr=fmt(new Date());const tmr=new Date();tmr.setDate(tmr.getDate()+1);const tmrStr=fmt(tmr);
+            let cls='today-task-item';if(t.dueDate<todayStr)cls+=' overdue';else if(t.dueDate===tmrStr)cls+=' tomorrow';
+            const pri={low:'低',medium:'中',high:'高'}[t.priority];
+            const dl=t.dueDate===todayStr?'今日':t.dueDate===tmrStr?'明日':fmtJP(t.dueDate);
+            return `<div class="${cls}"><div><div class="today-task-title">${esc(t.title)}</div><div style="font-size:.75em;color:var(--text-sub);margin-top:2px;">${dl}${t.dueTime?' ・ '+t.dueTime:''}</div></div><div class="today-task-info"><span class="priority-badge priority-${t.priority}">${pri}</span></div></div>`;
+        }
+
+        // リスト
+        function renderTasks(){
+            const el=document.getElementById('taskList');
+            let filtered=tasks;
+            if(currentFilter==='pending')filtered=tasks.filter(t=>!t.completed);
+            else if(currentFilter==='completed')filtered=tasks.filter(t=>t.completed);
+            filtered.sort((a,b)=>{if(!a.dueDate)return 1;if(!b.dueDate)return -1;return new Date(a.dueDate+'T'+(a.dueTime||'23:59'))-new Date(b.dueDate+'T'+(b.dueTime||'23:59'))});
+            if(!filtered.length){el.innerHTML='<p class="empty-message">タスクがありません</p>';return}
+            const today=new Date();today.setHours(0,0,0,0);const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
+            el.innerHTML=filtered.map(t=>{
+                let cls='task-item';if(t.completed)cls+=' completed';
+                if(t.dueDate&&!t.completed){const d=new Date(t.dueDate);d.setHours(0,0,0,0);if(d<today)cls+=' overdue';else if(d.getTime()===tmr.getTime())cls+=' tomorrow'}
+                const pri={low:'低',medium:'中',high:'高'}[t.priority];
+                const dt=t.dueDate?fmtJP(t.dueDate)+(t.dueTime?` ${t.dueTime}`:''):'期限なし';
+                return `<div class="${cls}"><input type="checkbox" class="task-checkbox" ${t.completed?'checked':''} onchange="toggleTask(${t.id})"><div class="task-content"><div class="task-title">${esc(t.title)}</div><div class="task-meta"><span class="priority-badge priority-${t.priority}">${pri}</span><span>📅 ${dt}</span></div></div><div class="task-actions"><button class="btn btn-secondary" onclick="openEditModal(${t.id})">編集</button><button class="btn btn-danger" onclick="deleteTask(${t.id})">削除</button></div></div>`;
+            }).join('');
+        }
+        function updateStats(){
+            document.getElementById('pendingCount').textContent=tasks.filter(t=>!t.completed).length;
+            document.getElementById('completedCount').textContent=tasks.filter(t=>t.completed).length;
+            document.getElementById('totalCount').textContent=tasks.length;
+        }
+        function setFilter(f){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));renderTasks()}
+
+        // モーダル
+        function openModal(id){document.getElementById(id).classList.add('active')}
+        function closeModal(id){document.getElementById(id).classList.remove('active')}
+        function openAddModal(date,time){
+            document.getElementById('modalTitle').textContent='タスク追加';document.getElementById('taskId').value='';document.getElementById('taskTitle').value='';
+            document.getElementById('taskDueDate').value=date||'';document.getElementById('taskDueTime').value=time||'';document.getElementById('taskPriority').value='medium';
+            openModal('taskModal');setTimeout(()=>document.getElementById('taskTitle').focus(),100);
+        }
+        function openEditModal(id){
+            const t=tasks.find(x=>x.id===id);if(!t)return;
+            document.getElementById('modalTitle').textContent='タスク編集';document.getElementById('taskId').value=t.id;document.getElementById('taskTitle').value=t.title;
+            document.getElementById('taskDueDate').value=t.dueDate||'';document.getElementById('taskDueTime').value=t.dueTime||'';document.getElementById('taskPriority').value=t.priority;
+            openModal('taskModal');
+        }
+        function openDayTasksModal(ds){
+            selectedDayDate=ds;
+            document.getElementById('dayTasksTitle').innerHTML=`📅 タスク一覧 <span class="date-badge">${fmtJP(ds)}</span>`;
+            document.getElementById('dayTasksDateLabel').textContent='';renderDayTasks(ds);openModal('dayTasksModal');
+        }
+        function renderDayTasks(ds){
+            const items=tasks.filter(t=>t.dueDate===ds).sort((a,b)=>{if(a.completed!==b.completed)return a.completed?1:-1;return(a.dueTime||'99:99').localeCompare(b.dueTime||'99:99')});
+            const el=document.getElementById('dayTasksList');
+            if(!items.length){el.innerHTML='<div class="day-task-empty"><div class="empty-icon">📭</div><div>この日のタスクはありません</div><div style="font-size:.8em;margin-top:4px;color:#adb5bd;">下のボタンから追加できます</div></div>';return}
+            const todayStr=fmt(new Date());
+            el.innerHTML=items.map(t=>{
+                let cls='day-task-item';if(t.completed)cls+=' completed';if(!t.completed&&t.dueDate<todayStr)cls+=' overdue';
+                return `<div class="${cls}" onclick="openEditModal(${t.id})"><input type="checkbox" class="task-checkbox" ${t.completed?'checked':''} onclick="event.stopPropagation();toggleTask(${t.id})"><div class="day-task-time">${t.dueTime||'終日'}</div><div class="day-task-title">${esc(t.title)}</div><span class="priority-badge priority-${t.priority}">${{low:'低',medium:'中',high:'高'}[t.priority]}</span></div>`;
+            }).join('');
+        }
+        function addTaskForDay(){if(!selectedDayDate)return;const pt=window._presetTime;closeModal('dayTasksModal');openAddModal(selectedDayDate,pt||null);window._presetTime=null}
+        document.getElementById('taskForm').addEventListener('submit',e=>{
+            e.preventDefault();const id=document.getElementById('taskId').value;
+            const t={title:document.getElementById('taskTitle').value.trim(),dueDate:document.getElementById('taskDueDate').value,dueTime:document.getElementById('taskDueTime').value,priority:document.getElementById('taskPriority').value};
+            if(!t.title)return;if(id)updateTask(parseInt(id),t);else addTask(t);closeModal('taskModal');
+        });
+
+        // カレンダー
+        function initCalendar(){
+            getAllHolidays();
+            calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{
+                initialView:'dayGridMonth',locale:'ja',
+                headerToolbar:{left:'prev',center:'title',right:'next'},height:'100%',
+                dayCellClassNames:arg=>holidaysCache[fmt(arg.date)]?['fc-holiday']:[],
+                dayCellContent:arg=>{const hn=holidaysCache[fmt(arg.date)];let html=`<span class="fc-daygrid-day-number">${arg.date.getDate()}</span>`;if(hn)html+=`<div class="fc-holiday-name">${hn}</div>`;return{html}},
+                events:(info,cb)=>{cb(tasks.filter(t=>t.dueDate).map(t=>({title:t.title,start:t.dueTime?`${t.dueDate}T${t.dueTime}:00`:t.dueDate,allDay:!t.dueTime,backgroundColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',borderColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',textColor:t.priority==='medium'?'#000':'#fff',extendedProps:{taskId:t.id}})))},
+                dateClick:info=>{window._presetTime=null;openDayTasksModal(info.dateStr)},
+                eventClick:info=>openDayTasksModal(fmt(new Date(info.event.start)))
+            });
+            calendar.render();
+        }
+        function updateCalendar(){if(calendar)calendar.refetchEvents()}
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded',()=>{
+            loadTasks();refreshAll();initCalendar();
+            registerServiceWorker();
+            // ブラウザ通知チェック（起動時1回）
+            setTimeout(sendBrowserNotifications,1000);
+        });
+        document.querySelectorAll('.modal').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('active')})});
+        document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal.active').forEach(m=>m.classList.remove('active'))});
+    </script>
+</body>
+</html>
+
