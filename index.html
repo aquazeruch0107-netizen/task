@@ -10,20 +10,36 @@
     <meta name="theme-color" content="#4a6fa5">
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
     <style>
-        :root{--primary:#4a6fa5;--primary-light:#e8eff9;--primary-dark:#3a5a8a;--bg:#f7f8fa;--surface:#fff;--text:#2c3e50;--text-sub:#6c757d;--border:#e2e6ea;--danger:#dc3545;--warning:#ffc107;--success:#28a745;--holiday:#e91e63;--sat-bg:#e3f2fd;--sun-bg:#fce4ec;--today-bg:#fff3cd}
+        :root{--primary:#4a6fa5;--primary-light:#e8eff9;--primary-dark:#3a5a8a;--bg:#f7f8fa;--surface:#fff;--text:#2c3e50;--text-sub:#6c757d;--border:#e2e6ea;--danger:#dc3545;--warning:#ffc107;--success:#28a745;--holiday:#e91e63;--sat-bg:#e3f2fd;--sun-bg:#fce4ec;--today-bg:#fff3cd;--sidebar-w:240px}
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         html,body{height:100%;overflow:hidden}
-        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);display:flex;justify-content:center;color:var(--text)}
-        .container{width:100%;max-width:1200px;background:var(--surface);display:flex;flex-direction:column;height:100vh;height:100dvh}
-        .header{background:var(--primary);color:#fff;padding:14px 20px;flex-shrink:0;text-align:center}
-        .header h1{font-size:1.15em;font-weight:700}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text)}
+        .app-layout{display:flex;height:100vh;height:100dvh;width:100%;max-width:1600px;margin:0 auto}
+        .sidebar{display:none;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);flex-direction:column;flex-shrink:0;overflow-y:auto}
+        .sidebar-brand{padding:24px 20px;font-size:1.2em;font-weight:800;color:var(--primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+        .sidebar-nav{padding:12px;flex:1;display:flex;flex-direction:column;gap:4px}
+        .sidebar-btn{display:flex;align-items:center;gap:12px;padding:12px 16px;border:none;background:transparent;border-radius:10px;cursor:pointer;font-size:.9em;font-weight:600;color:var(--text-sub);transition:all .2s;text-align:left;width:100%}
+        .sidebar-btn:hover{background:var(--bg);color:var(--text)}
+        .sidebar-btn.active{background:var(--primary-light);color:var(--primary)}
+        .sidebar-btn .nav-icon{font-size:1.3em;width:28px;text-align:center}
+        .sidebar-footer{padding:16px;border-top:1px solid var(--border)}
+        .sidebar-auth-btn{display:flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px solid var(--border);background:transparent;border-radius:10px;cursor:pointer;font-size:.8em;font-weight:600;color:var(--text-sub);transition:all .2s;width:100%;justify-content:center}
+        .sidebar-auth-btn:hover{border-color:var(--primary);color:var(--primary)}
+        .sidebar-auth-btn.logged-in{border-color:var(--success);color:var(--success);background:#f0fff4}
+        .main-area{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+        .mobile-header{display:flex;background:var(--primary);color:#fff;padding:14px 20px;flex-shrink:0;text-align:center;align-items:center;justify-content:center;position:relative}
+        .mobile-header h1{font-size:1.15em;font-weight:700}
+        .mobile-auth-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.7em;opacity:.9;cursor:pointer;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.2);border:none;color:#fff}
         .alert-banner{padding:10px 20px;text-align:center;font-size:.85em;font-weight:600;flex-shrink:0;display:none;cursor:pointer;align-items:center;justify-content:center;gap:8px}
         .alert-banner.visible{display:flex}
         .alert-banner.level-today{background:linear-gradient(135deg,#dc3545,#ff6b6b);color:#fff}
         .alert-banner.level-tomorrow{background:linear-gradient(135deg,#ff9a9e,#fecfef);color:#333}
         .alert-banner.level-soon{background:linear-gradient(135deg,#a1c4fd,#c2e9fb);color:#333}
         .alert-banner .close-alert{background:rgba(255,255,255,.3);border:none;color:inherit;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-        .notify-setup-bar{background:var(--primary-light);color:var(--primary);padding:10px 20px;text-align:center;font-size:.8em;font-weight:600;flex-shrink:0;display:none;cursor:pointer;align-items:center;justify-content:center;gap:8px}
+        .sync-banner{background:var(--primary);color:#fff;padding:10px 20px;text-align:center;font-size:.85em;font-weight:600;flex-shrink:0;display:none;align-items:center;justify-content:center;gap:8px}
+        .sync-banner.visible{display:flex}
+        .sync-banner .close-sync{background:rgba(255,255,255,.3);border:none;color:#fff;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .notify-setup-bar{background:var(--primary-light);color:var(--primary);padding:10px 20px;text-align:center;font-size:.8em;font-weight:600;flex-shrink:0;display:none;align-items:center;justify-content:center;gap:8px}
         .notify-setup-bar.visible{display:flex}
         .notify-setup-bar button{background:var(--primary);color:#fff;border:none;padding:4px 12px;border-radius:6px;font-size:.85em;font-weight:600;cursor:pointer}
         .screen{display:none;flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch}
@@ -118,70 +134,119 @@
         .day-task-empty .empty-icon{font-size:2em;margin-bottom:6px;opacity:.5}
         .day-task-footer{padding:12px 20px 20px;display:flex;gap:8px}
         .day-task-footer .btn{flex:1;padding:12px;font-size:14px}
+        .auth-tabs{display:flex;margin-bottom:16px;border-bottom:2px solid var(--border)}
+        .auth-tab{flex:1;padding:10px;background:none;border:none;font-size:14px;font-weight:600;color:var(--text-sub);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+        .auth-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+        .auth-error{background:#fff5f5;color:var(--danger);padding:10px;border-radius:8px;font-size:.85em;margin-bottom:12px;display:none;text-align:center}
+        .auth-error.visible{display:block}
+        .auth-note{font-size:.75em;color:#adb5bd;text-align:center;margin-top:12px}
+        .loading-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,.85);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+        .loading-overlay.visible{display:flex}
+        .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .loading-text{font-size:.9em;color:var(--text-sub);font-weight:600}
         @media(min-width:769px){
-            .container{border-radius:20px;margin:20px;height:calc(100vh - 40px);box-shadow:0 4px 24px rgba(0,0,0,.08)}
-            .modal-actions .btn{flex:none;padding:10px 24px}
+            .sidebar{display:flex}
+            .mobile-header{display:none}
+            .bottom-nav{display:none}
+            .home-content{padding:32px 40px}
+            .stats{gap:16px;margin-bottom:24px}
+            .stat-item{padding:24px 12px;border-radius:16px}
+            .stat-item strong{font-size:2.2em}
+            .stat-item span{font-size:.85em}
+            .home-section{padding:20px;margin-bottom:16px;border-radius:16px}
+            .home-section h3{font-size:1.05em;margin-bottom:14px}
+            .today-task-item{padding:14px 18px;border-radius:10px;margin-bottom:8px}
+            .today-task-title{font-size:1em}
+            .list-controls{padding:16px 24px;gap:10px}
+            .btn{padding:10px 18px;font-size:14px}
+            .filter-btn{padding:8px 14px;font-size:13px}
+            .list-content{padding:24px 32px}
+            .task-item{padding:16px;border-radius:12px;margin-bottom:10px}
+            .task-title{font-size:1em}
+            .task-meta{font-size:.8em}
+            .task-actions .btn{padding:8px 14px;font-size:12px}
+            .calendar-content{padding:16px}
+            .fc .fc-daygrid-day-frame{min-height:110px!important;max-height:110px!important}
+            .fc .fc-toolbar-title{font-size:1.4em!important}
+            .fc .fc-daygrid-day-events{top:24px!important;bottom:22px!important}
+            .fc-holiday-name{font-size:.65em!important;bottom:4px!important}
+            .fc .fc-daygrid-day-number{font-size:.9em!important;top:4px!important}
+            .fc .fc-daygrid-event{font-size:.7em!important;padding:2px 4px!important}
+            .modal-content{max-width:520px}
+            .modal-actions .btn{flex:none;padding:12px 28px}
             .day-task-footer .btn{flex:none}
-            .fc .fc-daygrid-day-frame{min-height:100px!important;max-height:100px!important}
-            .fc .fc-toolbar-title{font-size:1.3em!important}
-            .fc .fc-daygrid-day-events{top:22px!important;bottom:20px!important}
-            .fc-holiday-name{font-size:.6em!important;bottom:3px!important}
-            .fc .fc-daygrid-day-number{font-size:.85em!important;top:3px!important}
-            .bottom-nav{padding-bottom:0;padding-top:0}
-            .nav-btn{min-height:44px}
+        }
+        @media(min-width:1200px){
+            :root{--sidebar-w:280px}
+            .home-content{padding:40px 60px;max-width:1000px}
+            .stats{gap:20px}
+            .stat-item{padding:30px 16px}
+            .stat-item strong{font-size:2.5em}
+            .list-content{padding:32px 48px;max-width:1000px}
+            .calendar-content{padding:24px}
+            .fc .fc-daygrid-day-frame{min-height:130px!important;max-height:130px!important}
+            .fc .fc-toolbar-title{font-size:1.6em!important}
+            .fc .fc-daygrid-event{font-size:.75em!important}
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="alert-banner" id="alertBanner">
-            <span id="alertBannerText"></span>
-            <button class="close-alert" onclick="dismissAlert()">&times;</button>
-        </div>
-        <div class="notify-setup-bar" id="notifySetupBar">
-            <span>🔔 デスクトップ通知を有効にすると、アプリを閉じていても期限をお知らせします</span>
-            <button onclick="requestPushPermission()">有効にする</button>
-        </div>
-        <div class="header"><h1 id="screenTitle">📋 タスク管理</h1></div>
-
-        <div class="screen active" id="homeScreen">
-            <div class="home-content">
-                <div class="stats">
-                    <div class="stat-item pending"><strong id="pendingCount">0</strong><span>未完了</span></div>
-                    <div class="stat-item completed"><strong id="completedCount">0</strong><span>完了</span></div>
-                    <div class="stat-item total"><strong id="totalCount">0</strong><span>合計</span></div>
-                </div>
-                <div class="home-section"><h3>📅 今日のタスク</h3><div id="todayTasksList"></div></div>
-                <div class="home-section"><h3>⚠️ 期限切れ・明日までのタスク</h3><div id="urgentTasksList"></div></div>
-                <div class="home-section">
-                    <h3>📲 カレンダー連携</h3>
-                    <p style="font-size:.8em;color:var(--text-sub);margin-bottom:10px;">未完了タスクをカレンダーアプリに登録して、OS標準のリマインダー通知を受け取れます（iPhone推奨）</p>
-                    <button class="btn btn-outline" onclick="exportICS()" style="width:100%">📥 .icsファイルをダウンロード</button>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">📋 タスク管理</div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-btn active" data-screen="home" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span>ホーム</span></button>
+                <button class="sidebar-btn" data-screen="list" onclick="switchScreen('list')"><span class="nav-icon">📝</span><span>タスクリスト</span></button>
+                <button class="sidebar-btn" data-screen="calendar" onclick="switchScreen('calendar')"><span class="nav-icon">📅</span><span>カレンダー</span></button>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="sidebar-auth-btn" id="sidebarAuthBtn" onclick="openAuthModal()">🔒 未ログイン</button>
+            </div>
+        </aside>
+        <div class="main-area">
+            <div class="mobile-header">
+                <h1 id="mobileTitle">📋 タスク管理</h1>
+                <button class="mobile-auth-btn" id="mobileAuthBtn" onclick="openAuthModal()">🔒 未ログイン</button>
+            </div>
+            <div class="alert-banner" id="alertBanner"><span id="alertBannerText"></span><button class="close-alert" onclick="dismissAlert()">&times;</button></div>
+            <div class="sync-banner" id="syncBanner"><span>☁️ ログイン中：タスクは全端末で自動同期されます</span><button class="close-sync" onclick="dismissSyncBanner()">&times;</button></div>
+            <div class="notify-setup-bar" id="notifySetupBar"><span>🔔 デスクトップ通知を有効にすると、アプリを閉じていても期限をお知らせします</span><button onclick="requestPushPermission()">有効にする</button></div>
+            <div class="screen active" id="homeScreen">
+                <div class="home-content">
+                    <div class="stats">
+                        <div class="stat-item pending"><strong id="pendingCount">0</strong><span>未完了</span></div>
+                        <div class="stat-item completed"><strong id="completedCount">0</strong><span>完了</span></div>
+                        <div class="stat-item total"><strong id="totalCount">0</strong><span>合計</span></div>
+                    </div>
+                    <div class="home-section"><h3>📅 今日のタスク</h3><div id="todayTasksList"></div></div>
+                    <div class="home-section"><h3>⚠️ 期限切れ・明日までのタスク</h3><div id="urgentTasksList"></div></div>
+                    <div class="home-section">
+                        <h3>📲 カレンダー連携</h3>
+                        <p style="font-size:.8em;color:var(--text-sub);margin-bottom:10px;">未完了タスクをカレンダーアプリに登録して、OS標準のリマインダー通知を受け取れます</p>
+                        <button class="btn btn-outline" onclick="exportICS()" style="width:100%">📥 .icsファイルをダウンロード</button>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="screen" id="listScreen">
-            <div class="list-controls">
-                <button class="btn btn-primary" onclick="openAddModal()">+ 追加</button>
-                <button class="btn filter-btn active" data-filter="all" onclick="setFilter('all')">すべて</button>
-                <button class="btn filter-btn" data-filter="pending" onclick="setFilter('pending')">未完了</button>
-                <button class="btn filter-btn" data-filter="completed" onclick="setFilter('completed')">完了</button>
+            <div class="screen" id="listScreen">
+                <div class="list-controls">
+                    <button class="btn btn-primary" onclick="openAddModal()">+ 追加</button>
+                    <button class="btn filter-btn active" data-filter="all" onclick="setFilter('all')">すべて</button>
+                    <button class="btn filter-btn" data-filter="pending" onclick="setFilter('pending')">未完了</button>
+                    <button class="btn filter-btn" data-filter="completed" onclick="setFilter('completed')">完了</button>
+                </div>
+                <div class="list-content"><div id="taskList"></div></div>
             </div>
-            <div class="list-content"><div id="taskList"></div></div>
+            <div class="screen" id="calendarScreen">
+                <div class="calendar-content"><div id="calendar"></div></div>
+            </div>
+            <nav class="bottom-nav">
+                <button class="nav-btn active" data-screen="home" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span>ホーム</span></button>
+                <button class="nav-btn" data-screen="list" onclick="switchScreen('list')"><span class="nav-icon">📝</span><span>リスト</span></button>
+                <button class="nav-btn" data-screen="calendar" onclick="switchScreen('calendar')"><span class="nav-icon">📅</span><span>カレンダー</span></button>
+            </nav>
         </div>
-
-        <div class="screen" id="calendarScreen">
-            <div class="calendar-content"><div id="calendar"></div></div>
-        </div>
-
-        <nav class="bottom-nav">
-            <button class="nav-btn active" data-screen="home" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span>ホーム</span></button>
-            <button class="nav-btn" data-screen="list" onclick="switchScreen('list')"><span class="nav-icon">📝</span><span>リスト</span></button>
-            <button class="nav-btn" data-screen="calendar" onclick="switchScreen('calendar')"><span class="nav-icon">📅</span><span>カレンダー</span></button>
-        </nav>
     </div>
-
     <div class="modal" id="taskModal">
         <div class="modal-content">
             <div class="modal-header"><span id="modalTitle">タスク追加</span><button class="modal-close-btn" onclick="closeModal('taskModal')">&times;</button></div>
@@ -199,7 +264,6 @@
             </div>
         </div>
     </div>
-
     <div class="modal" id="dayTasksModal">
         <div class="modal-content">
             <div class="modal-header"><span id="dayTasksTitle">📅 タスク一覧</span><button class="modal-close-btn" onclick="closeModal('dayTasksModal')">&times;</button></div>
@@ -208,288 +272,340 @@
             <div class="day-task-footer"><button class="btn btn-primary" onclick="addTaskForDay()">+ タスクを追加</button></div>
         </div>
     </div>
-
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <div class="modal-header"><span id="authModalTitle">アカウント</span><button class="modal-close-btn" onclick="closeModal('authModal')">&times;</button></div>
+            <div class="modal-body">
+                <div class="auth-tabs" id="authTabs">
+                    <button class="auth-tab active" onclick="switchAuthTab('login')">ログイン</button>
+                    <button class="auth-tab" onclick="switchAuthTab('register')">新規登録</button>
+                </div>
+                <div class="auth-error" id="authError"></div>
+                <form id="authForm">
+                    <div class="form-group"><label for="authEmail">メールアドレス</label><input type="email" id="authEmail" class="form-control" required placeholder="example@mail.com"></div>
+                    <div class="form-group"><label for="authPassword">パスワード</label><input type="password" id="authPassword" class="form-control" required placeholder="6文字以上" minlength="6"></div>
+                    <div class="modal-actions"><button type="submit" class="btn btn-primary" id="authSubmitBtn">ログイン</button></div>
+                </form>
+                <div class="auth-note" id="authNote">ログインするとタスクが全端末で同期されます</div>
+                <div id="logoutSection" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);text-align:center;">
+                    <p style="font-size:.85em;color:var(--text-sub);margin-bottom:10px;" id="loggedInEmail"></p>
+                    <button class="btn btn-danger" onclick="doLogout()" style="width:100%">ログアウト</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><div class="loading-text" id="loadingText">同期中...</div></div>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/ja.global.min.js'></script>
     <script>
-        let tasks=[],currentFilter='all',currentScreen='home';
-        let selectedDayDate=null,calendar;
-        window._presetTime=null;
-
-        // =============================================
-        // ✅ 祝日計算（国民の休日・振替休日対応）
-        // =============================================
-        function fmt(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-
-        const holidaysCache={};
-
-        function getJapaneseHolidays(year){
-            const h={};
-            h[`${year}-01-01`]='元日';
-            const d1=new Date(year,0,1);while(d1.getDay()!==1)d1.setDate(d1.getDate()+1);d1.setDate(d1.getDate()+7);h[fmt(d1)]='成人の日';
-            h[`${year}-02-11`]='建国記念の日';h[`${year}-02-23`]='天皇誕生日';
-            const v=Math.floor(20.8431+.242194*(year-1980)-Math.floor((year-1980)/4));h[`${year}-03-${String(v).padStart(2,'0')}`]='春分の日';
-            h[`${year}-04-29`]='昭和の日';h[`${year}-05-03`]='憲法記念日';h[`${year}-05-04`]='みどりの日';h[`${year}-05-05`]='こどもの日';
-            const d2=new Date(year,6,1);while(d2.getDay()!==1)d2.setDate(d2.getDate()+1);d2.setDate(d2.getDate()+14);h[fmt(d2)]='海の日';
-            h[`${year}-08-11`]='山の日';
-            const d3=new Date(year,8,1);while(d3.getDay()!==1)d3.setDate(d3.getDate()+1);d3.setDate(d3.getDate()+14);h[fmt(d3)]='敬老の日';
-            const a=Math.floor(23.2488+.242194*(year-1980)-Math.floor((year-1980)/4));h[`${year}-09-${String(a).padStart(2,'0')}`]='秋分の日';
-            const d4=new Date(year,9,1);while(d4.getDay()!==1)d4.setDate(d4.getDate()+1);d4.setDate(d4.getDate()+7);h[fmt(d4)]='スポーツの日';
-            h[`${year}-11-03`]='文化の日';h[`${year}-11-23`]='勤労感謝の日';
-
-            // 振替休日：祝日が日曜なら翌月曜
-            Object.keys(h).forEach(dateStr=>{
-                const d=new Date(dateStr);
+    var FIREBASE_CONFIG={apiKey:"AIzaSyCXQhwpBAVOEEZm2TNHUTsCIp5dGXxmMjs",authDomain:"task2-2b427.firebaseapp.com",projectId:"task2-2b427",storageBucket:"task2-2b427.firebasestorage.app",messagingSenderId:"657993063379",appId:"1:657993063379:web:8dd7b407b114aa6052ad26"};
+    var auth=null,db=null,isFirebaseReady=false;
+    try{firebase.initializeApp(FIREBASE_CONFIG);auth=firebase.auth();db=firebase.firestore();isFirebaseReady=true;}catch(e){console.warn('Firebase init failed:',e);}
+    var tasks=[],currentFilter='all',currentScreen='home';
+    var selectedDayDate=null,calendar,currentAuthTab='login';
+    var currentUser=null,firestoreUnsubscribe=null,isSyncingFromFirestore=false;
+    window._presetTime=null;
+    function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+    function fmtJP(ds){if(!ds)return '';return new Date(ds).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'});}
+    function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+    var holidaysCache={};
+    function getBaseHolidays(year){
+        var h={};
+        h[year+'-01-01']='元日';
+        var d1=new Date(year,0,1);while(d1.getDay()!==1)d1.setDate(d1.getDate()+1);d1.setDate(d1.getDate()+7);h[fmt(d1)]='成人の日';
+        h[year+'-02-11']='建国記念の日';
+        h[year+'-02-23']='天皇誕生日';
+        var v=Math.floor(20.8431+0.242194*(year-1980)-Math.floor((year-1980)/4));
+        h[year+'-03-'+String(v).padStart(2,'0')]='春分の日';
+        h[year+'-04-29']='昭和の日';
+        h[year+'-05-03']='憲法記念日';
+        h[year+'-05-04']='みどりの日';
+        h[year+'-05-05']='こどもの日';
+        var d2=new Date(year,6,1);while(d2.getDay()!==1)d2.setDate(d2.getDate()+1);d2.setDate(d2.getDate()+14);h[fmt(d2)]='海の日';
+        h[year+'-08-11']='山の日';
+        var d3=new Date(year,8,1);while(d3.getDay()!==1)d3.setDate(d3.getDate()+1);d3.setDate(d3.getDate()+14);h[fmt(d3)]='敬老の日';
+        var a=Math.floor(23.2488+0.242194*(year-1980)-Math.floor((year-1980)/4));
+        h[year+'-09-'+String(a).padStart(2,'0')]='秋分の日';
+        var d4=new Date(year,9,1);while(d4.getDay()!==1)d4.setDate(d4.getDate()+1);d4.setDate(d4.getDate()+7);h[fmt(d4)]='スポーツの日';
+        h[year+'-11-03']='文化の日';
+        h[year+'-11-23']='勤労感謝の日';
+        return h;
+    }
+    function getAllHolidays(){
+        var y=new Date().getFullYear();
+        var i,ds,d,n,ns,yr,s,e,p,ps,day;
+        for(i=y-2;i<=y+3;i++){
+            if(!holidaysCache[i]){
+                var base=getBaseHolidays(i);
+                for(ds in base){if(base.hasOwnProperty(ds))holidaysCache[ds]=base[ds];}
+                holidaysCache[i]=true;
+            }
+        }
+        for(i=y-2;i<=y+3;i++){
+            var bh=getBaseHolidays(i);
+            for(ds in bh){
+                if(!bh.hasOwnProperty(ds))continue;
+                d=new Date(ds);
                 if(d.getDay()===0){
-                    const next=new Date(d);next.setDate(next.getDate()+1);
-                    const nextStr=fmt(next);
-                    if(!h[nextStr])h[nextStr]='振替休日';
-                }
-            });
-
-            // 国民の休日：祝日に挟まれた平日
-            const start=new Date(year,0,1);const end=new Date(year,11,31);
-            for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
-                const dateStr=fmt(d);
-                if(h[dateStr])continue;
-                const day=d.getDay();if(day===0||day===6)continue;
-                const prev=new Date(d);prev.setDate(prev.getDate()-1);
-                const next=new Date(d);next.setDate(next.getDate()+1);
-                if(isHoliday(fmt(prev))&&isHoliday(fmt(next))){
-                    h[dateStr]='国民の休日';
+                    n=new Date(d);n.setDate(n.getDate()+1);ns=fmt(n);
+                    if(!holidaysCache[ns])holidaysCache[ns]='振替休日';
                 }
             }
-            return h;
         }
-
-        function isHoliday(dateStr){
-            if(holidaysCache[dateStr])return true;
-            const y=parseInt(dateStr.substring(0,4));
-            if(!holidaysCache[y])Object.assign(holidaysCache,getJapaneseHolidays(y));
-            return !!holidaysCache[dateStr];
+        for(yr=y-1;yr<=y+2;yr++){
+            s=new Date(yr,0,1);e=new Date(yr,11,31);
+            for(d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
+                ds=fmt(d);
+                if(holidaysCache[ds])continue;
+                day=d.getDay();
+                if(day===0||day===6)continue;
+                p=new Date(d);p.setDate(p.getDate()-1);
+                n=new Date(d);n.setDate(n.getDate()+1);
+                ps=fmt(p);ns=fmt(n);
+                if(holidaysCache[ps]&&holidaysCache[ns]){
+                    holidaysCache[ds]='国民の休日';
+                }
+            }
         }
-
-        function getAllHolidays(){
-            const y=new Date().getFullYear();
-            for(let i=y-1;i<=y+2;i++){if(!holidaysCache[i])Object.assign(holidaysCache,getJapaneseHolidays(i))}
-            return holidaysCache;
-        }
-
-        function fmtJP(ds){if(!ds)return '';return new Date(ds).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'})}
-        function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
-
-        // LocalStorage
-        function saveTasks(){localStorage.setItem('tasks',JSON.stringify(tasks))}
-        function loadTasks(){const s=localStorage.getItem('tasks');if(s)tasks=JSON.parse(s)}
-
-        // CRUD
-        function addTask(t){t.id=Date.now();t.completed=false;t.createdAt=new Date().toISOString();tasks.push(t);saveTasks();refreshAll()}
-        function updateTask(id,u){const i=tasks.findIndex(t=>t.id===id);if(i!==-1){tasks[i]={...tasks[i],...u};saveTasks();refreshAll()}}
-        function deleteTask(id){if(confirm('削除しますか？')){tasks=tasks.filter(t=>t.id!==id);saveTasks();refreshAll();if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate)}}
-        function toggleTask(id){const t=tasks.find(x=>x.id===id);if(t){t.completed=!t.completed;saveTasks();refreshAll();if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate)}}
-        function refreshAll(){renderTasks();renderHome();updateStats();updateCalendar();checkAlerts();checkNotifySetup()}
-
-        // 3段階アラートバナー
-        function checkAlerts(){
-            const today=new Date();today.setHours(0,0,0,0);
-            const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
-            const in3=new Date(today);in3.setDate(in3.getDate()+3);
-            const todayStr=fmt(today),tmrStr=fmt(tmr),in3Str=fmt(in3);
-            const dismissed=localStorage.getItem('alertDismissedDate');
-            const todayTasks=tasks.filter(t=>!t.completed&&t.dueDate===todayStr);
-            const tmrTasks=tasks.filter(t=>!t.completed&&t.dueDate===tmrStr);
-            const soonTasks=tasks.filter(t=>!t.completed&&t.dueDate>tmrStr&&t.dueDate<=in3Str);
-            const banner=document.getElementById('alertBanner');
-            const text=document.getElementById('alertBannerText');
-            if(todayTasks.length>0&&dismissed!==todayStr+'-today'){
-                banner.className='alert-banner visible level-today';
-                const names=todayTasks.map(t=>t.title).slice(0,3).join('、');
-                text.textContent=`⚠️ 今日が期限: ${names}${todayTasks.length>3?` 他${todayTasks.length-3}件`:''}`;
-                banner.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};
-            }else if(tmrTasks.length>0&&dismissed!==todayStr+'-tomorrow'){
-                banner.className='alert-banner visible level-tomorrow';
-                const names=tmrTasks.map(t=>t.title).slice(0,3).join('、');
-                text.textContent=`🔔 明日が期限: ${names}${tmrTasks.length>3?` 他${tmrTasks.length-3}件`:''}`;
-                banner.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};
-            }else if(soonTasks.length>0&&dismissed!==todayStr+'-soon'){
-                banner.className='alert-banner visible level-soon';
-                const names=soonTasks.map(t=>t.title).slice(0,3).join('、');
-                text.textContent=`📋 3日後までに期限: ${names}${soonTasks.length>3?` 他${soonTasks.length-3}件`:''}`;
-                banner.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};
-            }else{banner.className='alert-banner'}
-        }
-        function dismissAlert(){
-            const todayStr=fmt(new Date());const banner=document.getElementById('alertBanner');
-            if(banner.classList.contains('level-today'))localStorage.setItem('alertDismissedDate',todayStr+'-today');
-            else if(banner.classList.contains('level-tomorrow'))localStorage.setItem('alertDismissedDate',todayStr+'-tomorrow');
-            else if(banner.classList.contains('level-soon'))localStorage.setItem('alertDismissedDate',todayStr+'-soon');
-            banner.className='alert-banner';
-        }
-
-        // Web Push通知
-        async function registerServiceWorker(){if(!('serviceWorker' in navigator))return null;try{return await navigator.serviceWorker.register('/sw.js')}catch(e){console.warn('SW登録失敗:',e);return null}}
-        function checkNotifySetup(){
-            const bar=document.getElementById('notifySetupBar');
-            if(!('Notification' in window)||!('serviceWorker' in navigator)){bar.classList.remove('visible');return}
-            if(Notification.permission==='granted'||Notification.permission==='denied'){bar.classList.remove('visible');return}
-            bar.classList.add('visible');
-        }
-        async function requestPushPermission(){
-            if(!('Notification' in window)){alert('このブラウザは通知に対応していません');return}
-            const perm=await Notification.requestPermission();
-            if(perm==='granted'){
-                document.getElementById('notifySetupBar').classList.remove('visible');
-                new Notification('📋 タスク管理',{body:'通知が有効になりました！',icon:'/icon-512.png'});
-                await registerServiceWorker();
-            }else{document.getElementById('notifySetupBar').classList.remove('visible')}
-        }
-        function sendBrowserNotifications(){
-            if(Notification.permission!=='granted')return;
-            const today=new Date();today.setHours(0,0,0,0);
-            const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
-            const todayStr=fmt(today),tmrStr=fmt(tmr);
-            const lastNotified=localStorage.getItem('lastBrowserNotifyDate');
-            if(lastNotified===todayStr)return;
-            const todayTasks=tasks.filter(t=>!t.completed&&t.dueDate===todayStr);
-            const tmrTasks=tasks.filter(t=>!t.completed&&t.dueDate===tmrStr);
-            if(todayTasks.length>0)new Notification('⚠️ 今日が期限',{body:`${todayTasks.length}件のタスクがあります`,icon:'/icon-512.png',tag:'task-today'});
-            if(tmrTasks.length>0)setTimeout(()=>new Notification('🔔 明日が期限',{body:`${tmrTasks.length}件のタスクがあります`,icon:'/icon-512.png',tag:'task-tomorrow'}),todayTasks.length>0?3000:0);
-            if(todayTasks.length>0||tmrTasks.length>0)localStorage.setItem('lastBrowserNotifyDate',todayStr);
-        }
-
-        // .icsエクスポート
-        function exportICS(){
-            const pending=tasks.filter(t=>!t.completed&&t.dueDate);
-            if(pending.length===0){alert('未完了のタスクがありません');return}
-            const pad=n=>String(n).padStart(2,'0');
-            const toICSDate=(dateStr,timeStr)=>{const d=new Date(dateStr);const y=d.getFullYear(),m=pad(d.getMonth()+1),day=pad(d.getDate());if(timeStr){const[h,min]=timeStr.split(':');return `${y}${m}${day}T${pad(h)}${pad(min)}00`}return `${y}${m}${day}`};
-            let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//TaskApp//JA\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n';
-            pending.forEach(t=>{
-                const dtStart=toICSDate(t.dueDate,t.dueTime);const isAllDay=!t.dueTime;
-                const uid=`task-${t.id}@taskapp`;const summary=t.title.replace(/[,;]/g,' ');
-                const priority=t.priority==='high'?1:t.priority==='medium'?5:9;
-                ics+='BEGIN:VEVENT\r\n';ics+=`UID:${uid}\r\n`;
-                ics+=`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z\r\n`;
-                if(isAllDay){ics+=`DTSTART;VALUE=DATE:${dtStart}\r\n`;const next=new Date(t.dueDate);next.setDate(next.getDate()+1);ics+=`DTEND;VALUE=DATE:${toICSDate(fmt(next),null)}\r\n`}
-                else{ics+=`DTSTART:${dtStart}\r\n`;const endD=new Date(`${t.dueDate}T${t.dueTime}:00`);endD.setHours(endD.getHours()+1);ics+=`DTEND:${toICSDate(fmt(endD),pad(endD.getHours())+':'+pad(endD.getMinutes()))}\r\n`}
-                ics+=`SUMMARY:${summary}\r\n`;ics+=`DESCRIPTION:優先度: ${{low:'低',medium:'中',high:'高'}[t.priority]}\r\n`;ics+=`PRIORITY:${priority}\r\n`;
-                if(isAllDay)ics+='BEGIN:VALARM\r\nTRIGGER:-PT0S\r\nACTION:DISPLAY\r\nDESCRIPTION:今日が期限です\r\nEND:VALARM\r\n';
-                else ics+='BEGIN:VALARM\r\nTRIGGER:-PT1H\r\nACTION:DISPLAY\r\nDESCRIPTION:1時間後に期限です\r\nEND:VALARM\r\n';
-                ics+='END:VEVENT\r\n';
-            });
-            ics+='END:VCALENDAR\r\n';
-            const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});const url=URL.createObjectURL(blob);
-            const a=document.createElement('a');a.href=url;a.download='tasks.ics';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-        }
-
-        // 画面切替
-        function switchScreen(s){
-            currentScreen=s;document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
-            document.getElementById(`${s}Screen`).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.screen===s));
-            document.getElementById('screenTitle').textContent={home:'📋 タスク管理',list:'📝 タスクリスト',calendar:'📅 カレンダー'}[s];
-            if(s==='calendar'&&calendar)setTimeout(()=>calendar.updateSize(),50);
-        }
-
-        // ホーム
-        function renderHome(){
-            const todayStr=fmt(new Date());
-            const todayTasks=tasks.filter(t=>t.dueDate===todayStr&&!t.completed).sort((a,b)=>(a.dueTime||'99:99').localeCompare(b.dueTime||'99:99'));
-            document.getElementById('todayTasksList').innerHTML=todayTasks.length?todayTasks.map(t=>homeTaskItem(t)).join(''):'<div class="empty-message">🎉 今日のタスクはありません</div>';
-            const now=new Date();now.setHours(0,0,0,0);const tmr=new Date(now);tmr.setDate(tmr.getDate()+1);
-            const urgent=tasks.filter(t=>{if(t.completed||!t.dueDate)return false;const d=new Date(t.dueDate);d.setHours(0,0,0,0);return d<=tmr}).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
-            document.getElementById('urgentTasksList').innerHTML=urgent.length?urgent.map(t=>homeTaskItem(t)).join(''):'<div class="empty-message">✅ 緊急のタスクはありません</div>';
-        }
-        function homeTaskItem(t){
-            const todayStr=fmt(new Date());const tmr=new Date();tmr.setDate(tmr.getDate()+1);const tmrStr=fmt(tmr);
-            let cls='today-task-item';if(t.dueDate<todayStr)cls+=' overdue';else if(t.dueDate===tmrStr)cls+=' tomorrow';
-            const pri={low:'低',medium:'中',high:'高'}[t.priority];
-            const dl=t.dueDate===todayStr?'今日':t.dueDate===tmrStr?'明日':fmtJP(t.dueDate);
-            return `<div class="${cls}"><div><div class="today-task-title">${esc(t.title)}</div><div style="font-size:.75em;color:var(--text-sub);margin-top:2px;">${dl}${t.dueTime?' ・ '+t.dueTime:''}</div></div><div class="today-task-info"><span class="priority-badge priority-${t.priority}">${pri}</span></div></div>`;
-        }
-
-        // リスト
-        function renderTasks(){
-            const el=document.getElementById('taskList');let filtered=tasks;
-            if(currentFilter==='pending')filtered=tasks.filter(t=>!t.completed);
-            else if(currentFilter==='completed')filtered=tasks.filter(t=>t.completed);
-            filtered.sort((a,b)=>{if(!a.dueDate)return 1;if(!b.dueDate)return -1;return new Date(a.dueDate+'T'+(a.dueTime||'23:59'))-new Date(b.dueDate+'T'+(b.dueTime||'23:59'))});
-            if(!filtered.length){el.innerHTML='<p class="empty-message">タスクがありません</p>';return}
-            const today=new Date();today.setHours(0,0,0,0);const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
-            el.innerHTML=filtered.map(t=>{
-                let cls='task-item';if(t.completed)cls+=' completed';
-                if(t.dueDate&&!t.completed){const d=new Date(t.dueDate);d.setHours(0,0,0,0);if(d<today)cls+=' overdue';else if(d.getTime()===tmr.getTime())cls+=' tomorrow'}
-                const pri={low:'低',medium:'中',high:'高'}[t.priority];
-                const dt=t.dueDate?fmtJP(t.dueDate)+(t.dueTime?` ${t.dueTime}`:''):'期限なし';
-                return `<div class="${cls}"><input type="checkbox" class="task-checkbox" ${t.completed?'checked':''} onchange="toggleTask(${t.id})"><div class="task-content"><div class="task-title">${esc(t.title)}</div><div class="task-meta"><span class="priority-badge priority-${t.priority}">${pri}</span><span>📅 ${dt}</span></div></div><div class="task-actions"><button class="btn btn-secondary" onclick="openEditModal(${t.id})">編集</button><button class="btn btn-danger" onclick="deleteTask(${t.id})">削除</button></div></div>`;
-            }).join('');
-        }
-        function updateStats(){
-            document.getElementById('pendingCount').textContent=tasks.filter(t=>!t.completed).length;
-            document.getElementById('completedCount').textContent=tasks.filter(t=>t.completed).length;
-            document.getElementById('totalCount').textContent=tasks.length;
-        }
-        function setFilter(f){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));renderTasks()}
-
-        // モーダル
-        function openModal(id){document.getElementById(id).classList.add('active')}
-        function closeModal(id){document.getElementById(id).classList.remove('active')}
-        function openAddModal(date,time){
-            document.getElementById('modalTitle').textContent='タスク追加';document.getElementById('taskId').value='';document.getElementById('taskTitle').value='';
-            document.getElementById('taskDueDate').value=date||'';document.getElementById('taskDueTime').value=time||'';document.getElementById('taskPriority').value='medium';
-            openModal('taskModal');setTimeout(()=>document.getElementById('taskTitle').focus(),100);
-        }
-        function openEditModal(id){
-            const t=tasks.find(x=>x.id===id);if(!t)return;
-            document.getElementById('modalTitle').textContent='タスク編集';document.getElementById('taskId').value=t.id;document.getElementById('taskTitle').value=t.title;
-            document.getElementById('taskDueDate').value=t.dueDate||'';document.getElementById('taskDueTime').value=t.dueTime||'';document.getElementById('taskPriority').value=t.priority;
-            openModal('taskModal');
-        }
-        function openDayTasksModal(ds){
-            selectedDayDate=ds;document.getElementById('dayTasksTitle').innerHTML=`📅 タスク一覧 <span class="date-badge">${fmtJP(ds)}</span>`;
-            document.getElementById('dayTasksDateLabel').textContent='';renderDayTasks(ds);openModal('dayTasksModal');
-        }
-        function renderDayTasks(ds){
-            const items=tasks.filter(t=>t.dueDate===ds).sort((a,b)=>{if(a.completed!==b.completed)return a.completed?1:-1;return(a.dueTime||'99:99').localeCompare(b.dueTime||'99:99')});
-            const el=document.getElementById('dayTasksList');
-            if(!items.length){el.innerHTML='<div class="day-task-empty"><div class="empty-icon">📭</div><div>この日のタスクはありません</div><div style="font-size:.8em;margin-top:4px;color:#adb5bd;">下のボタンから追加できます</div></div>';return}
-            const todayStr=fmt(new Date());
-            el.innerHTML=items.map(t=>{
-                let cls='day-task-item';if(t.completed)cls+=' completed';if(!t.completed&&t.dueDate<todayStr)cls+=' overdue';
-                return `<div class="${cls}" onclick="openEditModal(${t.id})"><input type="checkbox" class="task-checkbox" ${t.completed?'checked':''} onclick="event.stopPropagation();toggleTask(${t.id})"><div class="day-task-time">${t.dueTime||'終日'}</div><div class="day-task-title">${esc(t.title)}</div><span class="priority-badge priority-${t.priority}">${{low:'低',medium:'中',high:'高'}[t.priority]}</span></div>`;
-            }).join('');
-        }
-        function addTaskForDay(){if(!selectedDayDate)return;const pt=window._presetTime;closeModal('dayTasksModal');openAddModal(selectedDayDate,pt||null);window._presetTime=null}
-        document.getElementById('taskForm').addEventListener('submit',e=>{
-            e.preventDefault();const id=document.getElementById('taskId').value;
-            const t={title:document.getElementById('taskTitle').value.trim(),dueDate:document.getElementById('taskDueDate').value,dueTime:document.getElementById('taskDueTime').value,priority:document.getElementById('taskPriority').value};
-            if(!t.title)return;if(id)updateTask(parseInt(id),t);else addTask(t);closeModal('taskModal');
+        return holidaysCache;
+    }
+    function saveTasksLocal(){localStorage.setItem('tasks',JSON.stringify(tasks));}
+    function loadTasksLocal(){var s=localStorage.getItem('tasks');if(s)tasks=JSON.parse(s);}
+    function saveToFirestore(){
+        if(!currentUser||!db)return Promise.resolve();
+        return db.collection('users').doc(currentUser.uid).collection('tasks').doc('data').set({tasks:tasks,updatedAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(function(e){console.error('Firestore save error:',e);});
+    }
+    function startFirestoreListener(){
+        if(!currentUser||!db)return;
+        if(firestoreUnsubscribe)firestoreUnsubscribe();
+        firestoreUnsubscribe=db.collection('users').doc(currentUser.uid).collection('tasks').doc('data').onSnapshot(function(doc){
+            if(doc.exists&&doc.data()&&Array.isArray(doc.data().tasks)){
+                isSyncingFromFirestore=true;
+                tasks=doc.data().tasks;
+                renderAll();
+                isSyncingFromFirestore=false;
+            }
+        },function(err){console.error('Firestore listener error:',err);});
+    }
+    function stopFirestoreListener(){if(firestoreUnsubscribe){firestoreUnsubscribe();firestoreUnsubscribe=null;}}
+    function migrateLocalToFirestore(){
+        if(!currentUser||!db)return Promise.resolve();
+        var l=localStorage.getItem('tasks');
+        if(!l)return Promise.resolve();
+        var p=JSON.parse(l);
+        if(!p.length)return Promise.resolve();
+        return db.collection('users').doc(currentUser.uid).collection('tasks').doc('data').get().then(function(doc){
+            if(!doc.exists){tasks=p;return saveToFirestore();}
+        }).catch(function(e){console.error('Migration error:',e);});
+    }
+    function persistTasks(){if(isSyncingFromFirestore)return;if(currentUser)saveToFirestore();else saveTasksLocal();}
+    function addTask(t){t.id=Date.now();t.completed=false;t.createdAt=new Date().toISOString();tasks.push(t);persistTasks();renderAll();}
+    function updateTask(id,u){var i=tasks.findIndex(function(t){return t.id===id;});if(i!==-1){tasks[i]=Object.assign({},tasks[i],u);persistTasks();renderAll();}}
+    function deleteTask(id){if(confirm('削除しますか？')){tasks=tasks.filter(function(t){return t.id!==id;});persistTasks();renderAll();if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate);}}
+    function toggleTask(id){var t=tasks.find(function(x){return x.id===id;});if(t){t.completed=!t.completed;persistTasks();renderAll();if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate);}}
+    function renderAll(){renderTasks();renderHome();updateStats();updateCalendar();checkAlerts();checkNotifySetup();}
+    function checkAlerts(){
+        var today=new Date();today.setHours(0,0,0,0);
+        var tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
+        var in3=new Date(today);in3.setDate(in3.getDate()+3);
+        var ts=fmt(today),tms=fmt(tmr),i3s=fmt(in3);
+        var dis=localStorage.getItem('alertDismissedDate');
+        var tT=tasks.filter(function(t){return !t.completed&&t.dueDate===ts;});
+        var mT=tasks.filter(function(t){return !t.completed&&t.dueDate===tms;});
+        var sT=tasks.filter(function(t){return !t.completed&&t.dueDate>tms&&t.dueDate<=i3s;});
+        var b=document.getElementById('alertBanner'),tx=document.getElementById('alertBannerText');
+        if(tT.length>0&&dis!==ts+'-today'){
+            b.className='alert-banner visible level-today';
+            tx.textContent='\u26a0\ufe0f 今日が期限: '+tT.map(function(t){return t.title;}).slice(0,3).join('、')+(tT.length>3?' 他'+(tT.length-3)+'件':'');
+            b.onclick=function(e){if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending');};
+        }else if(mT.length>0&&dis!==ts+'-tomorrow'){
+            b.className='alert-banner visible level-tomorrow';
+            tx.textContent='\ud83d\udd14 明日が期限: '+mT.map(function(t){return t.title;}).slice(0,3).join('、')+(mT.length>3?' 他'+(mT.length-3)+'件':'');
+            b.onclick=function(e){if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending');};
+        }else if(sT.length>0&&dis!==ts+'-soon'){
+            b.className='alert-banner visible level-soon';
+            tx.textContent='\ud83d\udccb 3日後までに期限: '+sT.map(function(t){return t.title;}).slice(0,3).join('、')+(sT.length>3?' 他'+(sT.length-3)+'件':'');
+            b.onclick=function(e){if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending');};
+        }else{b.className='alert-banner';}
+    }
+    function dismissAlert(){
+        var ts=fmt(new Date()),b=document.getElementById('alertBanner');
+        if(b.classList.contains('level-today'))localStorage.setItem('alertDismissedDate',ts+'-today');
+        else if(b.classList.contains('level-tomorrow'))localStorage.setItem('alertDismissedDate',ts+'-tomorrow');
+        else if(b.classList.contains('level-soon'))localStorage.setItem('alertDismissedDate',ts+'-soon');
+        b.className='alert-banner';
+    }
+    function showSyncBannerIfNeeded(){if(!currentUser)return;if(!localStorage.getItem('syncBannerDismissed_'+currentUser.uid))document.getElementById('syncBanner').classList.add('visible');}
+    function dismissSyncBanner(){document.getElementById('syncBanner').classList.remove('visible');if(currentUser)localStorage.setItem('syncBannerDismissed_'+currentUser.uid,'true');}
+    function registerServiceWorker(){if(!('serviceWorker' in navigator))return Promise.resolve(null);return navigator.serviceWorker.register('/sw.js').catch(function(e){return null;});}
+    function checkNotifySetup(){var bar=document.getElementById('notifySetupBar');if(!('Notification' in window)||!('serviceWorker' in navigator)){bar.classList.remove('visible');return;}if(Notification.permission==='granted'||Notification.permission==='denied'){bar.classList.remove('visible');return;}bar.classList.add('visible');}
+    function requestPushPermission(){
+        if(!('Notification' in window))return;
+        Notification.requestPermission().then(function(p){
+            if(p==='granted'){document.getElementById('notifySetupBar').classList.remove('visible');new Notification('\ud83d\udccb タスク管理',{body:'通知が有効になりました！',icon:'/icon-512.png'});registerServiceWorker();}
+            else{document.getElementById('notifySetupBar').classList.remove('visible');}
         });
-
-        // カレンダー
-        function initCalendar(){
-            getAllHolidays();
-            calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{
-                initialView:'dayGridMonth',locale:'ja',
-                headerToolbar:{left:'prev',center:'title',right:'next'},height:'100%',
-                dayCellClassNames:arg=>holidaysCache[fmt(arg.date)]?['fc-holiday']:[],
-                dayCellContent:arg=>{const hn=holidaysCache[fmt(arg.date)];let html=`<span class="fc-daygrid-day-number">${arg.date.getDate()}</span>`;if(hn)html+=`<div class="fc-holiday-name">${hn}</div>`;return{html}},
-                events:(info,cb)=>{cb(tasks.filter(t=>t.dueDate).map(t=>({title:t.title,start:t.dueTime?`${t.dueDate}T${t.dueTime}:00`:t.dueDate,allDay:!t.dueTime,backgroundColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',borderColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',textColor:t.priority==='medium'?'#000':'#fff',extendedProps:{taskId:t.id}})))},
-                dateClick:info=>{window._presetTime=null;openDayTasksModal(info.dateStr)},
-                eventClick:info=>openDayTasksModal(fmt(new Date(info.event.start)))
-            });
-            calendar.render();
-        }
-        function updateCalendar(){if(calendar)calendar.refetchEvents()}
-
-        // 初期化
-        document.addEventListener('DOMContentLoaded',()=>{
-            loadTasks();refreshAll();initCalendar();
-            registerServiceWorker();
-            setTimeout(sendBrowserNotifications,1000);
+    }
+    function sendBrowserNotifications(){
+        if(Notification.permission!=='granted')return;
+        var today=new Date();today.setHours(0,0,0,0);
+        var tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
+        var ts=fmt(today),tms=fmt(tmr);
+        if(localStorage.getItem('lastBrowserNotifyDate')===ts)return;
+        var tT=tasks.filter(function(t){return !t.completed&&t.dueDate===ts;});
+        var mT=tasks.filter(function(t){return !t.completed&&t.dueDate===tms;});
+        if(tT.length>0)new Notification('\u26a0\ufe0f 今日が期限',{body:tT.length+'件のタスクがあります',icon:'/icon-512.png',tag:'task-today'});
+        if(mT.length>0)setTimeout(function(){new Notification('\ud83d\udd14 明日が期限',{body:mT.length+'件のタスクがあります',icon:'/icon-512.png',tag:'task-tomorrow'});},tT.length>0?3000:0);
+        if(tT.length>0||mT.length>0)localStorage.setItem('lastBrowserNotifyDate',ts);
+    }
+    function exportICS(){
+        var p=tasks.filter(function(t){return !t.completed&&t.dueDate;});
+        if(!p.length){alert('未完了のタスクがありません');return;}
+        var pad=function(n){return String(n).padStart(2,'0');};
+        var toICS=function(ds,ts){var d=new Date(ds);var y=d.getFullYear(),m=pad(d.getMonth()+1),day=pad(d.getDate());if(ts){var hm=ts.split(':');return y+m+day+'T'+pad(hm[0])+pad(hm[1])+'00';}return y+m+day;};
+        var ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//TaskApp//JA\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n';
+        p.forEach(function(t){
+            var dt=toICS(t.dueDate,t.dueTime),ad=!t.dueTime;
+            ics+='BEGIN:VEVENT\r\n';
+            ics+='UID:task-'+t.id+'@taskapp\r\n';
+            ics+='DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z\r\n';
+            if(ad){ics+='DTSTART;VALUE=DATE:'+dt+'\r\n';var nx=new Date(t.dueDate);nx.setDate(nx.getDate()+1);ics+='DTEND;VALUE=DATE:'+toICS(fmt(nx),null)+'\r\n';}
+            else{ics+='DTSTART:'+dt+'\r\n';var ed=new Date(t.dueDate+'T'+t.dueTime+':00');ed.setHours(ed.getHours()+1);ics+='DTEND:'+toICS(fmt(ed),pad(ed.getHours())+':'+pad(ed.getMinutes()))+'\r\n';}
+            ics+='SUMMARY:'+t.title.replace(/[,;]/g,' ')+'\r\n';
+            ics+='DESCRIPTION:優先度: '+({low:'低',medium:'中',high:'高'}[t.priority])+'\r\n';
+            ics+='PRIORITY:'+(t.priority==='high'?1:t.priority==='medium'?5:9)+'\r\n';
+            ics+=ad?'BEGIN:VALARM\r\nTRIGGER:-PT0S\r\nACTION:DISPLAY\r\nDESCRIPTION:今日が期限です\r\nEND:VALARM\r\n':'BEGIN:VALARM\r\nTRIGGER:-PT1H\r\nACTION:DISPLAY\r\nDESCRIPTION:1時間後に期限です\r\nEND:VALARM\r\n';
+            ics+='END:VEVENT\r\n';
         });
-        document.querySelectorAll('.modal').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('active')})});
-        document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal.active').forEach(m=>m.classList.remove('active'))});
+        ics+='END:VCALENDAR\r\n';
+        var blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+        var url=URL.createObjectURL(blob);
+        var a=document.createElement('a');a.href=url;a.download='tasks.ics';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    }
+    function updateAuthUI(){
+        var sb=document.getElementById('sidebarAuthBtn');
+        var mb=document.getElementById('mobileAuthBtn');
+        if(currentUser){sb.textContent='\u2601\ufe0f 同期中';sb.classList.add('logged-in');mb.textContent='\u2601\ufe0f 同期中';mb.style.background='rgba(40,167,69,.3)';}
+        else{sb.textContent='\ud83d\udd12 未ログイン';sb.classList.remove('logged-in');mb.textContent='\ud83d\udd12 未ログイン';mb.style.background='rgba(255,255,255,.2)';}
+    }
+    function openAuthModal(){
+        if(!isFirebaseReady){alert('Firebaseの設定が完了していません。');return;}
+        document.getElementById('authError').classList.remove('visible');
+        if(currentUser){document.getElementById('authTabs').style.display='none';document.getElementById('authForm').style.display='none';document.getElementById('authNote').style.display='none';document.getElementById('logoutSection').style.display='block';document.getElementById('loggedInEmail').textContent=currentUser.email;document.getElementById('authModalTitle').textContent='アカウント';}
+        else{document.getElementById('authTabs').style.display='flex';document.getElementById('authForm').style.display='block';document.getElementById('authNote').style.display='block';document.getElementById('logoutSection').style.display='none';switchAuthTab('login');}
+        openModal('authModal');
+    }
+    function switchAuthTab(tab){currentAuthTab=tab;document.querySelectorAll('.auth-tab').forEach(function(t){t.classList.toggle('active',t.textContent===(tab==='login'?'ログイン':'新規登録'));});document.getElementById('authSubmitBtn').textContent=tab==='login'?'ログイン':'新規登録';document.getElementById('authModalTitle').textContent=tab==='login'?'ログイン':'新規登録';document.getElementById('authError').classList.remove('visible');}
+    document.getElementById('authForm').addEventListener('submit',function(e){
+        e.preventDefault();if(!isFirebaseReady)return;
+        var email=document.getElementById('authEmail').value.trim(),password=document.getElementById('authPassword').value;
+        var errEl=document.getElementById('authError');errEl.classList.remove('visible');
+        showLoading(currentAuthTab==='login'?'ログイン中...':'登録中...');
+        var prom=currentAuthTab==='login'?auth.signInWithEmailAndPassword(email,password):auth.createUserWithEmailAndPassword(email,password);
+        prom.then(function(){closeModal('authModal');}).catch(function(err){
+            var msgs={'auth/user-not-found':'アカウントが見つかりません','auth/wrong-password':'パスワードが正しくありません','auth/email-already-in-use':'このメールは既に登録されています','auth/invalid-email':'メールアドレスの形式が正しくありません','auth/weak-password':'パスワードは6文字以上にしてください','auth/invalid-credential':'メールまたはパスワードが正しくありません'};
+            errEl.textContent=msgs[err.code]||'エラーが発生しました';errEl.classList.add('visible');
+        }).finally(function(){hideLoading();});
+    });
+    function doLogout(){if(!auth)return;showLoading('ログアウト中...');stopFirestoreListener();auth.signOut().then(function(){closeModal('authModal');}).catch(function(e){console.error(e);}).finally(function(){hideLoading();});}
+    function showLoading(t){document.getElementById('loadingText').textContent=t||'処理中...';document.getElementById('loadingOverlay').classList.add('visible');}
+    function hideLoading(){document.getElementById('loadingOverlay').classList.remove('visible');}
+    function switchScreen(s){
+        currentScreen=s;
+        document.querySelectorAll('.screen').forEach(function(el){el.classList.remove('active');});
+        document.getElementById(s+'Screen').classList.add('active');
+        document.querySelectorAll('.nav-btn,.sidebar-btn').forEach(function(b){b.classList.toggle('active',b.dataset.screen===s);});
+        document.getElementById('mobileTitle').textContent={home:'\ud83d\udccb タスク管理',list:'\ud83d\udcdd タスクリスト',calendar:'\ud83d\udcc5 カレンダー'}[s];
+        if(s==='calendar'&&calendar)setTimeout(function(){calendar.updateSize();},50);
+    }
+    function renderHome(){
+        var ts=fmt(new Date());
+        var tT=tasks.filter(function(t){return t.dueDate===ts&&!t.completed;}).sort(function(a,b){return(a.dueTime||'99:99').localeCompare(b.dueTime||'99:99');});
+        document.getElementById('todayTasksList').innerHTML=tT.length?tT.map(function(t){return homeTaskItem(t);}).join(''):'<div class="empty-message">\ud83c\udf89 今日のタスクはありません</div>';
+        var now=new Date();now.setHours(0,0,0,0);var tmr=new Date(now);tmr.setDate(tmr.getDate()+1);
+        var u=tasks.filter(function(t){if(t.completed||!t.dueDate)return false;var d=new Date(t.dueDate);d.setHours(0,0,0,0);return d<=tmr;}).sort(function(a,b){return new Date(a.dueDate)-new Date(b.dueDate);});
+        document.getElementById('urgentTasksList').innerHTML=u.length?u.map(function(t){return homeTaskItem(t);}).join(''):'<div class="empty-message">\u2705 緊急のタスクはありません</div>';
+    }
+    function homeTaskItem(t){
+        var ts=fmt(new Date());var tmr=new Date();tmr.setDate(tmr.getDate()+1);var tms=fmt(tmr);
+        var c='today-task-item';if(t.dueDate<ts)c+=' overdue';else if(t.dueDate===tms)c+=' tomorrow';
+        var p={low:'低',medium:'中',high:'高'}[t.priority];
+        var dl=t.dueDate===ts?'今日':t.dueDate===tms?'明日':fmtJP(t.dueDate);
+        return '<div class="'+c+'"><div><div class="today-task-title">'+esc(t.title)+'</div><div style="font-size:.75em;color:var(--text-sub);margin-top:2px;">'+dl+(t.dueTime?' ・ '+t.dueTime:'')+'</div></div><div class="today-task-info"><span class="priority-badge priority-'+t.priority+'">'+p+'</span></div></div>';
+    }
+    function renderTasks(){
+        var el=document.getElementById('taskList');var f=tasks;
+        if(currentFilter==='pending')f=tasks.filter(function(t){return !t.completed;});
+        else if(currentFilter==='completed')f=tasks.filter(function(t){return t.completed;});
+        f.sort(function(a,b){if(!a.dueDate)return 1;if(!b.dueDate)return -1;return new Date(a.dueDate+'T'+(a.dueTime||'23:59'))-new Date(b.dueDate+'T'+(b.dueTime||'23:59'));});
+        if(!f.length){el.innerHTML='<p class="empty-message">タスクがありません</p>';return;}
+        var today=new Date();today.setHours(0,0,0,0);var tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
+        el.innerHTML=f.map(function(t){
+            var c='task-item';if(t.completed)c+=' completed';
+            if(t.dueDate&&!t.completed){var d=new Date(t.dueDate);d.setHours(0,0,0,0);if(d<today)c+=' overdue';else if(d.getTime()===tmr.getTime())c+=' tomorrow';}
+            var p={low:'低',medium:'中',high:'高'}[t.priority];
+            var dt=t.dueDate?fmtJP(t.dueDate)+(t.dueTime?' '+t.dueTime:''):'期限なし';
+            return '<div class="'+c+'"><input type="checkbox" class="task-checkbox" '+(t.completed?'checked':'')+' onchange="toggleTask('+t.id+')"><div class="task-content"><div class="task-title">'+esc(t.title)+'</div><div class="task-meta"><span class="priority-badge priority-'+t.priority+'">'+p+'</span><span>\ud83d\udcc5 '+dt+'</span></div></div><div class="task-actions"><button class="btn btn-secondary" onclick="openEditModal('+t.id+')">編集</button><button class="btn btn-danger" onclick="deleteTask('+t.id+')">削除</button></div></div>';
+        }).join('');
+    }
+    function updateStats(){document.getElementById('pendingCount').textContent=tasks.filter(function(t){return !t.completed;}).length;document.getElementById('completedCount').textContent=tasks.filter(function(t){return t.completed;}).length;document.getElementById('totalCount').textContent=tasks.length;}
+    function setFilter(f){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.toggle('active',b.dataset.filter===f);});renderTasks();}
+    function openModal(id){document.getElementById(id).classList.add('active');}
+    function closeModal(id){document.getElementById(id).classList.remove('active');}
+    function openAddModal(d,t){document.getElementById('modalTitle').textContent='タスク追加';document.getElementById('taskId').value='';document.getElementById('taskTitle').value='';document.getElementById('taskDueDate').value=d||'';document.getElementById('taskDueTime').value=t||'';document.getElementById('taskPriority').value='medium';openModal('taskModal');setTimeout(function(){document.getElementById('taskTitle').focus();},100);}
+    function openEditModal(id){var t=tasks.find(function(x){return x.id===id;});if(!t)return;document.getElementById('modalTitle').textContent='タスク編集';document.getElementById('taskId').value=t.id;document.getElementById('taskTitle').value=t.title;document.getElementById('taskDueDate').value=t.dueDate||'';document.getElementById('taskDueTime').value=t.dueTime||'';document.getElementById('taskPriority').value=t.priority;openModal('taskModal');}
+    function openDayTasksModal(ds){selectedDayDate=ds;document.getElementById('dayTasksTitle').innerHTML='\ud83d\udcc5 タスク一覧 <span class="date-badge">'+fmtJP(ds)+'</span>';document.getElementById('dayTasksDateLabel').textContent='';renderDayTasks(ds);openModal('dayTasksModal');}
+    function renderDayTasks(ds){
+        var items=tasks.filter(function(t){return t.dueDate===ds;}).sort(function(a,b){if(a.completed!==b.completed)return a.completed?1:-1;return(a.dueTime||'99:99').localeCompare(b.dueTime||'99:99');});
+        var el=document.getElementById('dayTasksList');
+        if(!items.length){el.innerHTML='<div class="day-task-empty"><div class="empty-icon">\ud83d\udced</div><div>この日のタスクはありません</div><div style="font-size:.8em;margin-top:4px;color:#adb5bd;">下のボタンから追加できます</div></div>';return;}
+        var ts=fmt(new Date());
+        el.innerHTML=items.map(function(t){
+            var c='day-task-item';if(t.completed)c+=' completed';if(!t.completed&&t.dueDate<ts)c+=' overdue';
+            return '<div class="'+c+'" onclick="openEditModal('+t.id+')"><input type="checkbox" class="task-checkbox" '+(t.completed?'checked':'')+' onclick="event.stopPropagation();toggleTask('+t.id+')"><div class="day-task-time">'+(t.dueTime||'終日')+'</div><div class="day-task-title">'+esc(t.title)+'</div><span class="priority-badge priority-'+t.priority+'">'+({low:'低',medium:'中',high:'高'}[t.priority])+'</span></div>';
+        }).join('');
+    }
+    function addTaskForDay(){if(!selectedDayDate)return;var pt=window._presetTime;closeModal('dayTasksModal');openAddModal(selectedDayDate,pt||null);window._presetTime=null;}
+    document.getElementById('taskForm').addEventListener('submit',function(e){
+        e.preventDefault();var id=document.getElementById('taskId').value;
+        var t={title:document.getElementById('taskTitle').value.trim(),dueDate:document.getElementById('taskDueDate').value,dueTime:document.getElementById('taskDueTime').value,priority:document.getElementById('taskPriority').value};
+        if(!t.title)return;if(id)updateTask(parseInt(id),t);else addTask(t);closeModal('taskModal');
+    });
+    function initCalendar(){
+        getAllHolidays();
+        calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{
+            initialView:'dayGridMonth',locale:'ja',
+            headerToolbar:{left:'prev',center:'title',right:'next'},height:'100%',
+            dayCellClassNames:function(a){return holidaysCache[fmt(a.date)]?['fc-holiday']:[];},
+            dayCellContent:function(a){var h=holidaysCache[fmt(a.date)];var html='<span class="fc-daygrid-day-number">'+a.date.getDate()+'</span>';if(h)html+='<div class="fc-holiday-name">'+h+'</div>';return{html:html};},
+            events:function(i,cb){cb(tasks.filter(function(t){return t.dueDate;}).map(function(t){return{title:t.title,start:t.dueTime?t.dueDate+'T'+t.dueTime+':00':t.dueDate,allDay:!t.dueTime,backgroundColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',borderColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',textColor:t.priority==='medium'?'#000':'#fff',extendedProps:{taskId:t.id}};}));},
+            dateClick:function(i){window._presetTime=null;openDayTasksModal(i.dateStr);},
+            eventClick:function(i){openDayTasksModal(fmt(new Date(i.event.start)));}
+        });
+        calendar.render();
+    }
+    function updateCalendar(){if(calendar)calendar.refetchEvents();}
+    document.addEventListener('DOMContentLoaded',function(){
+        loadTasksLocal();renderAll();initCalendar();registerServiceWorker();
+        setTimeout(sendBrowserNotifications,1000);
+        if(isFirebaseReady&&auth){
+            auth.onAuthStateChanged(function(user){
+                currentUser=user;updateAuthUI();
+                if(user){
+                    var settled=false;
+                    var tid=setTimeout(function(){if(!settled){settled=true;hideLoading();}},5000);
+                    showLoading('同期中...');
+                    migrateLocalToFirestore().then(function(){startFirestoreListener();showSyncBannerIfNeeded();}).catch(function(e){console.error('Sync error:',e);}).then(function(){if(!settled){settled=true;clearTimeout(tid);hideLoading();}});
+                }else{stopFirestoreListener();document.getElementById('syncBanner').classList.remove('visible');loadTasksLocal();renderAll();}
+            });
+        }
+    });
+    document.querySelectorAll('.modal').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('active');});});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.modal.active').forEach(function(m){m.classList.remove('active');});});
     </script>
 </body>
 </html>
