@@ -15,12 +15,9 @@
         html,body{height:100%;overflow:hidden}
         body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text)}
 
-        /* ============================================
-           レイアウト構造
-           ============================================ */
         .app-layout{display:flex;height:100vh;height:100dvh;width:100%;max-width:1600px;margin:0 auto}
 
-        /* サイドバー（PCのみ表示） */
+        /* サイドバー（PCのみ） */
         .sidebar{display:none;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);flex-direction:column;flex-shrink:0;overflow-y:auto}
         .sidebar-brand{padding:24px 20px;font-size:1.2em;font-weight:800;color:var(--primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
         .sidebar-nav{padding:12px;flex:1;display:flex;flex-direction:column;gap:4px}
@@ -36,7 +33,7 @@
         /* メインエリア */
         .main-area{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
 
-        /* モバイルヘッダー（モバイルのみ表示） */
+        /* モバイルヘッダー */
         .mobile-header{display:flex;background:var(--primary);color:#fff;padding:14px 20px;flex-shrink:0;text-align:center;align-items:center;justify-content:center;position:relative}
         .mobile-header h1{font-size:1.15em;font-weight:700}
         .mobile-auth-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.7em;opacity:.9;cursor:pointer;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.2);border:none;color:#fff}
@@ -170,14 +167,11 @@
         @keyframes spin{to{transform:rotate(360deg)}}
         .loading-text{font-size:.9em;color:var(--text-sub);font-weight:600}
 
-        /* ============================================
-           PC向けレスポンシブ（769px以上）
-           ============================================ */
+        /* PC向けレスポンシブ */
         @media(min-width:769px){
             .sidebar{display:flex}
             .mobile-header{display:none}
             .bottom-nav{display:none}
-
             .home-content{padding:32px 40px}
             .stats{gap:16px;margin-bottom:24px}
             .stat-item{padding:24px 12px;border-radius:16px}
@@ -187,7 +181,6 @@
             .home-section h3{font-size:1.05em;margin-bottom:14px}
             .today-task-item{padding:14px 18px;border-radius:10px;margin-bottom:8px}
             .today-task-title{font-size:1em}
-
             .list-controls{padding:16px 24px;gap:10px}
             .btn{padding:10px 18px;font-size:14px}
             .filter-btn{padding:8px 14px;font-size:13px}
@@ -196,7 +189,6 @@
             .task-title{font-size:1em}
             .task-meta{font-size:.8em}
             .task-actions .btn{padding:8px 14px;font-size:12px}
-
             .calendar-content{padding:16px}
             .fc .fc-daygrid-day-frame{min-height:110px!important;max-height:110px!important}
             .fc .fc-toolbar-title{font-size:1.4em!important}
@@ -204,17 +196,16 @@
             .fc-holiday-name{font-size:.65em!important;bottom:4px!important}
             .fc .fc-daygrid-day-number{font-size:.9em!important;top:4px!important}
             .fc .fc-daygrid-event{font-size:.7em!important;padding:2px 4px!important}
-
             .modal-content{max-width:520px}
             .modal-actions .btn{flex:none;padding:12px 28px}
             .day-task-footer .btn{flex:none}
         }
 
-        /* 大画面（1200px以上） */
+        /* 大画面 */
         @media(min-width:1200px){
             :root{--sidebar-w:280px}
             .home-content{padding:40px 60px;max-width:1000px}
-            .stats{grid-template-columns:repeat(3,1fr);gap:20px}
+            .stats{gap:20px}
             .stat-item{padding:30px 16px}
             .stat-item strong{font-size:2.5em}
             .list-content{padding:32px 48px;max-width:1000px}
@@ -227,41 +218,30 @@
 </head>
 <body>
     <div class="app-layout">
-        <!-- ===== PCサイドバー ===== -->
+        <!-- PCサイドバー -->
         <aside class="sidebar">
             <div class="sidebar-brand">📋 タスク管理</div>
             <nav class="sidebar-nav">
-                <button class="sidebar-btn active" data-screen="home" onclick="switchScreen('home')">
-                    <span class="nav-icon">🏠</span><span>ホーム</span>
-                </button>
-                <button class="sidebar-btn" data-screen="list" onclick="switchScreen('list')">
-                    <span class="nav-icon">📝</span><span>タスクリスト</span>
-                </button>
-                <button class="sidebar-btn" data-screen="calendar" onclick="switchScreen('calendar')">
-                    <span class="nav-icon">📅</span><span>カレンダー</span>
-                </button>
+                <button class="sidebar-btn active" data-screen="home" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span>ホーム</span></button>
+                <button class="sidebar-btn" data-screen="list" onclick="switchScreen('list')"><span class="nav-icon">📝</span><span>タスクリスト</span></button>
+                <button class="sidebar-btn" data-screen="calendar" onclick="switchScreen('calendar')"><span class="nav-icon">📅</span><span>カレンダー</span></button>
             </nav>
             <div class="sidebar-footer">
-                <button class="sidebar-auth-btn" id="sidebarAuthBtn" onclick="openAuthModal()">
-                    🔒 未ログイン
-                </button>
+                <button class="sidebar-auth-btn" id="sidebarAuthBtn" onclick="openAuthModal()">🔒 未ログイン</button>
             </div>
         </aside>
 
-        <!-- ===== メインエリア ===== -->
+        <!-- メインエリア -->
         <div class="main-area">
-            <!-- モバイルヘッダー -->
             <div class="mobile-header">
                 <h1 id="mobileTitle">📋 タスク管理</h1>
                 <button class="mobile-auth-btn" id="mobileAuthBtn" onclick="openAuthModal()">🔒 未ログイン</button>
             </div>
 
-            <!-- バナー類 -->
             <div class="alert-banner" id="alertBanner"><span id="alertBannerText"></span><button class="close-alert" onclick="dismissAlert()">&times;</button></div>
             <div class="sync-banner" id="syncBanner"><span>☁️ ログイン中：タスクは全端末で自動同期されます</span><button class="close-sync" onclick="dismissSyncBanner()">&times;</button></div>
             <div class="notify-setup-bar" id="notifySetupBar"><span>🔔 デスクトップ通知を有効にすると、アプリを閉じていても期限をお知らせします</span><button onclick="requestPushPermission()">有効にする</button></div>
 
-            <!-- ホーム -->
             <div class="screen active" id="homeScreen">
                 <div class="home-content">
                     <div class="stats">
@@ -279,7 +259,6 @@
                 </div>
             </div>
 
-            <!-- リスト -->
             <div class="screen" id="listScreen">
                 <div class="list-controls">
                     <button class="btn btn-primary" onclick="openAddModal()">+ 追加</button>
@@ -290,12 +269,10 @@
                 <div class="list-content"><div id="taskList"></div></div>
             </div>
 
-            <!-- カレンダー -->
             <div class="screen" id="calendarScreen">
                 <div class="calendar-content"><div id="calendar"></div></div>
             </div>
 
-            <!-- モバイルボトムナビ -->
             <nav class="bottom-nav">
                 <button class="nav-btn active" data-screen="home" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span>ホーム</span></button>
                 <button class="nav-btn" data-screen="list" onclick="switchScreen('list')"><span class="nav-icon">📝</span><span>リスト</span></button>
@@ -377,22 +354,13 @@
     window._presetTime=null;
 
     // 祝日計算
-    function fmt(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-    function fmtJP(ds){if(!ds)return '';return new Date(ds).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'});}
-    function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-    const holidaysCache={};
-    function getBaseHolidays(year){
-        const h={};h[`${year}-01-01`]='元日';
+    function fmt(d){return `<LaTex>id_35</LaTex>{String(d.getMonth()+1).padStart(2,'0')}-<LaTex>id_34</LaTex>{year}-01-01`]='元日';
         const d1=new Date(year,0,1);while(d1.getDay()!==1)d1.setDate(d1.getDate()+1);d1.setDate(d1.getDate()+7);h[fmt(d1)]='成人の日';
-        h[`${year}-02-11`]='建国記念の日';h[`${year}-02-23`]='天皇誕生日';
-        const v=Math.floor(20.8431+.242194*(year-1980)-Math.floor((year-1980)/4));h[`${year}-03-${String(v).padStart(2,'0')}`]='春分の日';
-        h[`${year}-04-29`]='昭和の日';h[`${year}-05-03`]='憲法記念日';h[`${year}-05-04`]='みどりの日';h[`${year}-05-05`]='こどもの日';
+        h[`<LaTex>id_33</LaTex>{year}-02-23`]='天皇誕生日';
+        const v=Math.floor(20.8431+.242194*(year-1980)-Math.floor((year-1980)/4));h[`<LaTex>id_32</LaTex>{String(v).padStart(2,'0')}`]='春分の日';
+        h[`<LaTex>id_31</LaTex>{year}-05-03`]='憲法記念日';h[`<LaTex>id_30</LaTex>{year}-05-05`]='こどもの日';
         const d2=new Date(year,6,1);while(d2.getDay()!==1)d2.setDate(d2.getDate()+1);d2.setDate(d2.getDate()+14);h[fmt(d2)]='海の日';
-        h[`${year}-08-11`]='山の日';
-        const d3=new Date(year,8,1);while(d3.getDay()!==1)d3.setDate(d3.getDate()+1);d3.setDate(d3.getDate()+14);h[fmt(d3)]='敬老の日';
-        const a=Math.floor(23.2488+.242194*(year-1980)-Math.floor((year-1980)/4));h[`${year}-09-${String(a).padStart(2,'0')}`]='秋分の日';
-        const d4=new Date(year,9,1);while(d4.getDay()!==1)d4.setDate(d4.getDate()+1);d4.setDate(d4.getDate()+7);h[fmt(d4)]='スポーツの日';
-        h[`${year}-11-03`]='文化の日';h[`${year}-11-23`]='勤労感謝の日';return h;
+        h[`<LaTex>id_29</LaTex>{year}-09-<LaTex>id_28</LaTex>{year}-11-03`]='文化の日';h[`${year}-11-23`]='勤労感謝の日';return h;
     }
     function getAllHolidays(){
         const y=new Date().getFullYear();
@@ -402,7 +370,7 @@
         return holidaysCache;
     }
 
-    // データ永続化
+    // データ永続化（排他制御）
     function saveTasksLocal(){localStorage.setItem('tasks',JSON.stringify(tasks));}
     function loadTasksLocal(){const s=localStorage.getItem('tasks');if(s)tasks=JSON.parse(s);}
     async function saveToFirestore(){if(!currentUser||!db)return;try{await db.collection('users').doc(currentUser.uid).collection('tasks').doc('data').set({tasks,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}catch(e){console.error('Firestore save error:',e);}}
@@ -433,9 +401,9 @@
         const ts=fmt(today),tms=fmt(tmr),i3s=fmt(in3);const dis=localStorage.getItem('alertDismissedDate');
         const tT=tasks.filter(t=>!t.completed&&t.dueDate===ts);const mT=tasks.filter(t=>!t.completed&&t.dueDate===tms);const sT=tasks.filter(t=>!t.completed&&t.dueDate>tms&&t.dueDate<=i3s);
         const b=document.getElementById('alertBanner'),tx=document.getElementById('alertBannerText');
-        if(tT.length>0&&dis!==ts+'-today'){b.className='alert-banner visible level-today';tx.textContent=`⚠️ 今日が期限: ${tT.map(t=>t.title).slice(0,3).join('、')}${tT.length>3?` 他${tT.length-3}件`:''}`;b.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};}
-        else if(mT.length>0&&dis!==ts+'-tomorrow'){b.className='alert-banner visible level-tomorrow';tx.textContent=`🔔 明日が期限: ${mT.map(t=>t.title).slice(0,3).join('、')}${mT.length>3?` 他${mT.length-3}件`:''}`;b.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};}
-        else if(sT.length>0&&dis!==ts+'-soon'){b.className='alert-banner visible level-soon';tx.textContent=`📋 3日後までに期限: ${sT.map(t=>t.title).slice(0,3).join('、')}${sT.length>3?` 他${sT.length-3}件`:''}`;b.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};}
+        if(tT.length>0&&dis!==ts+'-today'){b.className='alert-banner visible level-today';tx.textContent=`⚠️ 今日が期限: ${tT.map(t=>t.title).slice(0,3).join('、')}<LaTex>id_27</LaTex>{tT.length-3}件`:''}`;b.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};}
+        else if(mT.length>0&&dis!==ts+'-tomorrow'){b.className='alert-banner visible level-tomorrow';tx.textContent=`🔔 明日が期限: <LaTex>id_26</LaTex>{mT.length>3?` 他${mT.length-3}件`:''}`;b.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};}
+        else if(sT.length>0&&dis!==ts+'-soon'){b.className='alert-banner visible level-soon';tx.textContent=`📋 3日後までに期限: ${sT.map(t=>t.title).slice(0,3).join('、')}<LaTex>id_25</LaTex>{sT.length-3}件`:''}`;b.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};}
         else b.className='alert-banner';
     }
     function dismissAlert(){const ts=fmt(new Date()),b=document.getElementById('alertBanner');if(b.classList.contains('level-today'))localStorage.setItem('alertDismissedDate',ts+'-today');else if(b.classList.contains('level-tomorrow'))localStorage.setItem('alertDismissedDate',ts+'-tomorrow');else if(b.classList.contains('level-soon'))localStorage.setItem('alertDismissedDate',ts+'-soon');b.className='alert-banner';}
@@ -448,17 +416,17 @@
     async function registerServiceWorker(){if(!('serviceWorker' in navigator))return null;try{return await navigator.serviceWorker.register('/sw.js');}catch(e){return null;}}
     function checkNotifySetup(){const bar=document.getElementById('notifySetupBar');if(!('Notification' in window)||!('serviceWorker' in navigator)){bar.classList.remove('visible');return;}if(Notification.permission==='granted'||Notification.permission==='denied'){bar.classList.remove('visible');return;}bar.classList.add('visible');}
     async function requestPushPermission(){if(!('Notification' in window))return;const p=await Notification.requestPermission();if(p==='granted'){document.getElementById('notifySetupBar').classList.remove('visible');new Notification('📋 タスク管理',{body:'通知が有効になりました！',icon:'/icon-512.png'});await registerServiceWorker();}else document.getElementById('notifySetupBar').classList.remove('visible');}
-    function sendBrowserNotifications(){if(Notification.permission!=='granted')return;const today=new Date();today.setHours(0,0,0,0);const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);const ts=fmt(today),tms=fmt(tmr);if(localStorage.getItem('lastBrowserNotifyDate')===ts)return;const tT=tasks.filter(t=>!t.completed&&t.dueDate===ts);const mT=tasks.filter(t=>!t.completed&&t.dueDate===tms);if(tT.length>0)new Notification('⚠️ 今日が期限',{body:`${tT.length}件のタスクがあります`,icon:'/icon-512.png',tag:'task-today'});if(mT.length>0)setTimeout(()=>new Notification('🔔 明日が期限',{body:`${mT.length}件のタスクがあります`,icon:'/icon-512.png',tag:'task-tomorrow'}),tT.length>0?3000:0);if(tT.length>0||mT.length>0)localStorage.setItem('lastBrowserNotifyDate',ts);}
+    function sendBrowserNotifications(){if(Notification.permission!=='granted')return;const today=new Date();today.setHours(0,0,0,0);const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);const ts=fmt(today),tms=fmt(tmr);if(localStorage.getItem('lastBrowserNotifyDate')===ts)return;const tT=tasks.filter(t=>!t.completed&&t.dueDate===ts);const mT=tasks.filter(t=>!t.completed&&t.dueDate===tms);if(tT.length>0)new Notification('⚠️ 今日が期限',{body:`<LaTex>id_24</LaTex>{mT.length}件のタスクがあります`,icon:'/icon-512.png',tag:'task-tomorrow'}),tT.length>0?3000:0);if(tT.length>0||mT.length>0)localStorage.setItem('lastBrowserNotifyDate',ts);}
 
     // .icsエクスポート
-    function exportICS(){const p=tasks.filter(t=>!t.completed&&t.dueDate);if(!p.length){alert('未完了のタスクがありません');return;}const pad=n=>String(n).padStart(2,'0');const toICS=(ds,ts)=>{const d=new Date(ds);const y=d.getFullYear(),m=pad(d.getMonth()+1),day=pad(d.getDate());if(ts){const[h,min]=ts.split(':');return `${y}${m}${day}T${pad(h)}${pad(min)}00`;}return `${y}${m}${day}`;};let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//TaskApp//JA\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n';p.forEach(t=>{const dt=toICS(t.dueDate,t.dueTime),ad=!t.dueTime;ics+='BEGIN:VEVENT\r\n';ics+=`UID:task-${t.id}@taskapp\r\nDTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z\r\n`;if(ad){ics+=`DTSTART;VALUE=DATE:${dt}\r\n`;const nx=new Date(t.dueDate);nx.setDate(nx.getDate()+1);ics+=`DTEND;VALUE=DATE:${toICS(fmt(nx),null)}\r\n`;}else{ics+=`DTSTART:${dt}\r\n`;const ed=new Date(`${t.dueDate}T${t.dueTime}:00`);ed.setHours(ed.getHours()+1);ics+=`DTEND:${toICS(fmt(ed),pad(ed.getHours())+':'+pad(ed.getMinutes()))}\r\n`;}ics+=`SUMMARY:${t.title.replace(/[,;]/g,' ')}\r\nDESCRIPTION:優先度: ${{low:'低',medium:'中',high:'高'}[t.priority]}\r\nPRIORITY:${t.priority==='high'?1:t.priority==='medium'?5:9}\r\n`;ics+=ad?'BEGIN:VALARM\r\nTRIGGER:-PT0S\r\nACTION:DISPLAY\r\nDESCRIPTION:今日が期限です\r\nEND:VALARM\r\n':'BEGIN:VALARM\r\nTRIGGER:-PT1H\r\nACTION:DISPLAY\r\nDESCRIPTION:1時間後に期限です\r\nEND:VALARM\r\n';ics+='END:VEVENT\r\n';});ics+='END:VCALENDAR\r\n';const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tasks.ics';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+    function exportICS(){const p=tasks.filter(t=>!t.completed&&t.dueDate);if(!p.length){alert('未完了のタスクがありません');return;}const pad=n=>String(n).padStart(2,'0');const toICS=(ds,ts)=>{const d=new Date(ds);const y=d.getFullYear(),m=pad(d.getMonth()+1),day=pad(d.getDate());if(ts){const[h,min]=ts.split(':');return `<LaTex>id_23</LaTex>{m}<LaTex>id_22</LaTex>{pad(h)}<LaTex>id_21</LaTex>{y}<LaTex>id_20</LaTex>{day}`;};let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//TaskApp//JA\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n';p.forEach(t=>{const dt=toICS(t.dueDate,t.dueTime),ad=!t.dueTime;ics+='BEGIN:VEVENT\r\n';ics+=`UID:task-<LaTex>id_19</LaTex>{new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z\r\n`;if(ad){ics+=`DTSTART;VALUE=DATE:<LaTex>id_18</LaTex>{toICS(fmt(nx),null)}\r\n`;}else{ics+=`DTSTART:<LaTex>id_17</LaTex>{t.dueDate}T<LaTex>id_16</LaTex>{toICS(fmt(ed),pad(ed.getHours())+':'+pad(ed.getMinutes()))}\r\n`;}ics+=`SUMMARY:<LaTex>id_15</LaTex>{{low:'低',medium:'中',high:'高'}[t.priority]}\r\nPRIORITY:${t.priority==='high'?1:t.priority==='medium'?5:9}\r\n`;ics+=ad?'BEGIN:VALARM\r\nTRIGGER:-PT0S\r\nACTION:DISPLAY\r\nDESCRIPTION:今日が期限です\r\nEND:VALARM\r\n':'BEGIN:VALARM\r\nTRIGGER:-PT1H\r\nACTION:DISPLAY\r\nDESCRIPTION:1時間後に期限です\r\nEND:VALARM\r\n';ics+='END:VEVENT\r\n';});ics+='END:VCALENDAR\r\n';const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tasks.ics';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
 
-    // 認証UI（サイドバー＋モバイル両方更新）
+    // ✅ 認証UI（PC・iPhoneともに「☁️ 同期中」で統一）
     function updateAuthUI(){
         const sb=document.getElementById('sidebarAuthBtn');
         const mb=document.getElementById('mobileAuthBtn');
         if(currentUser){
-            sb.textContent='☁️ '+currentUser.email.split('@')[0];sb.classList.add('logged-in');
+            sb.textContent='☁️ 同期中';sb.classList.add('logged-in');
             mb.textContent='☁️ 同期中';mb.style.background='rgba(40,167,69,.3)';
         }else{
             sb.textContent='🔒 未ログイン';sb.classList.remove('logged-in');
@@ -478,7 +446,7 @@
     function showLoading(t){document.getElementById('loadingText').textContent=t||'処理中...';document.getElementById('loadingOverlay').classList.add('visible');}
     function hideLoading(){document.getElementById('loadingOverlay').classList.remove('visible');}
 
-    // 画面切替（サイドバー＋ボトムナビ両方連動）
+    // 画面切替（サイドバー＋ボトムナビ連動）
     function switchScreen(s){
         currentScreen=s;
         document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
@@ -496,7 +464,7 @@
         const u=tasks.filter(t=>{if(t.completed||!t.dueDate)return false;const d=new Date(t.dueDate);d.setHours(0,0,0,0);return d<=tmr;}).sort((a,b)=>new Date(a.dueDate)-new Date(b.dueDate));
         document.getElementById('urgentTasksList').innerHTML=u.length?u.map(t=>homeTaskItem(t)).join(''):'<div class="empty-message">✅ 緊急のタスクはありません</div>';
     }
-    function homeTaskItem(t){const ts=fmt(new Date());const tmr=new Date();tmr.setDate(tmr.getDate()+1);const tms=fmt(tmr);let c='today-task-item';if(t.dueDate<ts)c+=' overdue';else if(t.dueDate===tms)c+=' tomorrow';const p={low:'低',medium:'中',high:'高'}[t.priority];const dl=t.dueDate===ts?'今日':t.dueDate===tms?'明日':fmtJP(t.dueDate);return `<div class="${c}"><div><div class="today-task-title">${esc(t.title)}</div><div style="font-size:.75em;color:var(--text-sub);margin-top:2px;">${dl}${t.dueTime?' ・ '+t.dueTime:''}</div></div><div class="today-task-info"><span class="priority-badge priority-${t.priority}">${p}</span></div></div>`;}
+    function homeTaskItem(t){const ts=fmt(new Date());const tmr=new Date();tmr.setDate(tmr.getDate()+1);const tms=fmt(tmr);let c='today-task-item';if(t.dueDate<ts)c+=' overdue';else if(t.dueDate===tms)c+=' tomorrow';const p={low:'低',medium:'中',high:'高'}[t.priority];const dl=t.dueDate===ts?'今日':t.dueDate===tms?'明日':fmtJP(t.dueDate);return `<div class="<LaTex>id_14</LaTex>{esc(t.title)}</div><div style="font-size:.75em;color:var(--text-sub);margin-top:2px;"><LaTex>id_13</LaTex>{t.dueTime?' ・ '+t.dueTime:''}</div></div><div class="today-task-info"><span class="priority-badge priority-<LaTex>id_12</LaTex>{p}</span></div></div>`;}
 
     // リスト
     function renderTasks(){
@@ -505,7 +473,7 @@
         f.sort((a,b)=>{if(!a.dueDate)return 1;if(!b.dueDate)return -1;return new Date(a.dueDate+'T'+(a.dueTime||'23:59'))-new Date(b.dueDate+'T'+(b.dueTime||'23:59'));});
         if(!f.length){el.innerHTML='<p class="empty-message">タスクがありません</p>';return;}
         const today=new Date();today.setHours(0,0,0,0);const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
-        el.innerHTML=f.map(t=>{let c='task-item';if(t.completed)c+=' completed';if(t.dueDate&&!t.completed){const d=new Date(t.dueDate);d.setHours(0,0,0,0);if(d<today)c+=' overdue';else if(d.getTime()===tmr.getTime())c+=' tomorrow';}const p={low:'低',medium:'中',high:'高'}[t.priority];const dt=t.dueDate?fmtJP(t.dueDate)+(t.dueTime?` ${t.dueTime}`:''):'期限なし';return `<div class="${c}"><input type="checkbox" class="task-checkbox" ${t.completed?'checked':''} onchange="toggleTask(${t.id})"><div class="task-content"><div class="task-title">${esc(t.title)}</div><div class="task-meta"><span class="priority-badge priority-${t.priority}">${p}</span><span>📅 ${dt}</span></div></div><div class="task-actions"><button class="btn btn-secondary" onclick="openEditModal(${t.id})">編集</button><button class="btn btn-danger" onclick="deleteTask(${t.id})">削除</button></div></div>`;}).join('');
+        el.innerHTML=f.map(t=>{let c='task-item';if(t.completed)c+=' completed';if(t.dueDate&&!t.completed){const d=new Date(t.dueDate);d.setHours(0,0,0,0);if(d<today)c+=' overdue';else if(d.getTime()===tmr.getTime())c+=' tomorrow';}const p={low:'低',medium:'中',high:'高'}[t.priority];const dt=t.dueDate?fmtJP(t.dueDate)+(t.dueTime?` <LaTex>id_11</LaTex>{c}"><input type="checkbox" class="task-checkbox" <LaTex>id_10</LaTex>{t.id})"><div class="task-content"><div class="task-title"><LaTex>id_9</LaTex>{t.priority}"><LaTex>id_8</LaTex>{dt}</span></div></div><div class="task-actions"><button class="btn btn-secondary" onclick="openEditModal(<LaTex>id_7</LaTex>{t.id})">削除</button></div></div>`;}).join('');
     }
     function updateStats(){document.getElementById('pendingCount').textContent=tasks.filter(t=>!t.completed).length;document.getElementById('completedCount').textContent=tasks.filter(t=>t.completed).length;document.getElementById('totalCount').textContent=tasks.length;}
     function setFilter(f){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));renderTasks();}
@@ -515,20 +483,9 @@
     function closeModal(id){document.getElementById(id).classList.remove('active');}
     function openAddModal(d,t){document.getElementById('modalTitle').textContent='タスク追加';document.getElementById('taskId').value='';document.getElementById('taskTitle').value='';document.getElementById('taskDueDate').value=d||'';document.getElementById('taskDueTime').value=t||'';document.getElementById('taskPriority').value='medium';openModal('taskModal');setTimeout(()=>document.getElementById('taskTitle').focus(),100);}
     function openEditModal(id){const t=tasks.find(x=>x.id===id);if(!t)return;document.getElementById('modalTitle').textContent='タスク編集';document.getElementById('taskId').value=t.id;document.getElementById('taskTitle').value=t.title;document.getElementById('taskDueDate').value=t.dueDate||'';document.getElementById('taskDueTime').value=t.dueTime||'';document.getElementById('taskPriority').value=t.priority;openModal('taskModal');}
-    function openDayTasksModal(ds){selectedDayDate=ds;document.getElementById('dayTasksTitle').innerHTML=`📅 タスク一覧 <span class="date-badge">${fmtJP(ds)}</span>`;document.getElementById('dayTasksDateLabel').textContent='';renderDayTasks(ds);openModal('dayTasksModal');}
-    function renderDayTasks(ds){const items=tasks.filter(t=>t.dueDate===ds).sort((a,b)=>{if(a.completed!==b.completed)return a.completed?1:-1;return(a.dueTime||'99:99').localeCompare(b.dueTime||'99:99');});const el=document.getElementById('dayTasksList');if(!items.length){el.innerHTML='<div class="day-task-empty"><div class="empty-icon">📭</div><div>この日のタスクはありません</div><div style="font-size:.8em;margin-top:4px;color:#adb5bd;">下のボタンから追加できます</div></div>';return;}const ts=fmt(new Date());el.innerHTML=items.map(t=>{let c='day-task-item';if(t.completed)c+=' completed';if(!t.completed&&t.dueDate<ts)c+=' overdue';return `<div class="${c}" onclick="openEditModal(${t.id})"><input type="checkbox" class="task-checkbox" ${t.completed?'checked':''} onclick="event.stopPropagation();toggleTask(${t.id})"><div class="day-task-time">${t.dueTime||'終日'}</div><div class="day-task-title">${esc(t.title)}</div><span class="priority-badge priority-${t.priority}">${{low:'低',medium:'中',high:'高'}[t.priority]}</span></div>`;}).join('');}
-    function addTaskForDay(){if(!selectedDayDate)return;const pt=window._presetTime;closeModal('dayTasksModal');openAddModal(selectedDayDate,pt||null);window._presetTime=null;}
-    document.getElementById('taskForm').addEventListener('submit',e=>{e.preventDefault();const id=document.getElementById('taskId').value;const t={title:document.getElementById('taskTitle').value.trim(),dueDate:document.getElementById('taskDueDate').value,dueTime:document.getElementById('taskDueTime').value,priority:document.getElementById('taskPriority').value};if(!t.title)return;if(id)updateTask(parseInt(id),t);else addTask(t);closeModal('taskModal');});
-
-    // カレンダー
-    function initCalendar(){getAllHolidays();calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{initialView:'dayGridMonth',locale:'ja',headerToolbar:{left:'prev',center:'title',right:'next'},height:'100%',dayCellClassNames:a=>holidaysCache[fmt(a.date)]?['fc-holiday']:[],dayCellContent:a=>{const h=holidaysCache[fmt(a.date)];let html=`<span class="fc-daygrid-day-number">${a.date.getDate()}</span>`;if(h)html+=`<div class="fc-holiday-name">${h}</div>`;return{html};},events:(i,cb)=>{cb(tasks.filter(t=>t.dueDate).map(t=>({title:t.title,start:t.dueTime?`${t.dueDate}T${t.dueTime}:00`:t.dueDate,allDay:!t.dueTime,backgroundColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',borderColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',textColor:t.priority==='medium'?'#000':'#fff',extendedProps:{taskId:t.id}})));},dateClick:i=>{window._presetTime=null;openDayTasksModal(i.dateStr);},eventClick:i=>openDayTasksModal(fmt(new Date(i.event.start)))});calendar.render();}
+    function openDayTasksModal(ds){selectedDayDate=ds;document.getElementById('dayTasksTitle').innerHTML=`📅 タスク一覧 <span class="date-badge"><LaTex>id_6</LaTex>{c}" onclick="openEditModal(<LaTex>id_5</LaTex>{t.completed?'checked':''} onclick="event.stopPropagation();toggleTask(<LaTex>id_4</LaTex>{t.dueTime||'終日'}</div><div class="day-task-title"><LaTex>id_3</LaTex>{t.priority}"><LaTex>id_2</LaTex>{a.date.getDate()}</span>`;if(h)html+=`<div class="fc-holiday-name"><LaTex>id_1</LaTex>{t.dueDate}T${t.dueTime}:00`:t.dueDate,allDay:!t.dueTime,backgroundColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',borderColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',textColor:t.priority==='medium'?'#000':'#fff',extendedProps:{taskId:t.id}})));},dateClick:i=>{window._presetTime=null;openDayTasksModal(i.dateStr);},eventClick:i=>openDayTasksModal(fmt(new Date(i.event.start)))});calendar.render();}
     function updateCalendar(){if(calendar)calendar.refetchEvents();}
 
-    // 初期化
+    // 初期化（5秒タイムアウト付き）
     document.addEventListener('DOMContentLoaded',()=>{loadTasksLocal();renderAll();initCalendar();registerServiceWorker();setTimeout(sendBrowserNotifications,1000);if(isFirebaseReady&&auth){auth.onAuthStateChanged(async user=>{currentUser=user;updateAuthUI();if(user){let settled=false;const tid=setTimeout(()=>{if(!settled){settled=true;hideLoading();}},5000);showLoading('同期中...');try{await migrateLocalToFirestore();startFirestoreListener();showSyncBannerIfNeeded();}catch(e){console.error('Sync error:',e);}if(!settled){settled=true;clearTimeout(tid);hideLoading();}}else{stopFirestoreListener();document.getElementById('syncBanner').classList.remove('visible');loadTasksLocal();renderAll();}});}});
-    document.querySelectorAll('.modal').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('active');});});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal.active').forEach(m=>m.classList.remove('active'));});
-    </script>
-</body>
-</html>
-
+    document.querySelectorAll('.modal').forEach(m=>{m.addEventListener('click',e=>{if
