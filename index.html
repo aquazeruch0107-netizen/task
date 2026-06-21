@@ -17,20 +17,15 @@
         .container{width:100%;max-width:1200px;background:var(--surface);display:flex;flex-direction:column;height:100vh;height:100dvh}
         .header{background:var(--primary);color:#fff;padding:14px 20px;flex-shrink:0;text-align:center}
         .header h1{font-size:1.15em;font-weight:700}
-
-        /* 通知バナー（3段階） */
         .alert-banner{padding:10px 20px;text-align:center;font-size:.85em;font-weight:600;flex-shrink:0;display:none;cursor:pointer;align-items:center;justify-content:center;gap:8px}
         .alert-banner.visible{display:flex}
         .alert-banner.level-today{background:linear-gradient(135deg,#dc3545,#ff6b6b);color:#fff}
         .alert-banner.level-tomorrow{background:linear-gradient(135deg,#ff9a9e,#fecfef);color:#333}
         .alert-banner.level-soon{background:linear-gradient(135deg,#a1c4fd,#c2e9fb);color:#333}
         .alert-banner .close-alert{background:rgba(255,255,255,.3);border:none;color:inherit;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-
-        /* 通知設定バー */
         .notify-setup-bar{background:var(--primary-light);color:var(--primary);padding:10px 20px;text-align:center;font-size:.8em;font-weight:600;flex-shrink:0;display:none;cursor:pointer;align-items:center;justify-content:center;gap:8px}
         .notify-setup-bar.visible{display:flex}
         .notify-setup-bar button{background:var(--primary);color:#fff;border:none;padding:4px 12px;border-radius:6px;font-size:.85em;font-weight:600;cursor:pointer}
-
         .screen{display:none;flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch}
         .screen.active{display:flex;flex-direction:column}
         .home-content{padding:16px;flex:1;overflow-y:auto}
@@ -139,18 +134,14 @@
 </head>
 <body>
     <div class="container">
-        <!-- 3段階アラートバナー -->
         <div class="alert-banner" id="alertBanner">
             <span id="alertBannerText"></span>
             <button class="close-alert" onclick="dismissAlert()">&times;</button>
         </div>
-
-        <!-- 通知許可促しバー -->
         <div class="notify-setup-bar" id="notifySetupBar">
             <span>🔔 デスクトップ通知を有効にすると、アプリを閉じていても期限をお知らせします</span>
             <button onclick="requestPushPermission()">有効にする</button>
         </div>
-
         <div class="header"><h1 id="screenTitle">📋 タスク管理</h1></div>
 
         <div class="screen active" id="homeScreen">
@@ -214,9 +205,7 @@
             <div class="modal-header"><span id="dayTasksTitle">📅 タスク一覧</span><button class="modal-close-btn" onclick="closeModal('dayTasksModal')">&times;</button></div>
             <div style="padding:10px 20px 0;color:var(--text-sub);font-size:.85em;" id="dayTasksDateLabel"></div>
             <div class="day-task-list" id="dayTasksList" style="margin-top:10px;"></div>
-            <div class="day-task-footer">
-                <button class="btn btn-primary" onclick="addTaskForDay()">+ タスクを追加</button>
-            </div>
+            <div class="day-task-footer"><button class="btn btn-primary" onclick="addTaskForDay()">+ タスクを追加</button></div>
         </div>
     </div>
 
@@ -227,11 +216,65 @@
         let selectedDayDate=null,calendar;
         window._presetTime=null;
 
-        // 祝日計算
-        function getJapaneseHolidays(y){const h={};h[`${y}-01-01`]='元日';const d1=new Date(y,0,1);while(d1.getDay()!==1)d1.setDate(d1.getDate()+1);d1.setDate(d1.getDate()+7);h[fmt(d1)]='成人の日';h[`${y}-02-11`]='建国記念の日';h[`${y}-02-23`]='天皇誕生日';const v=Math.floor(20.8431+.242194*(y-1980)-Math.floor((y-1980)/4));h[`${y}-03-${String(v).padStart(2,'0')}`]='春分の日';h[`${y}-04-29`]='昭和の日';h[`${y}-05-03`]='憲法記念日';h[`${y}-05-04`]='みどりの日';h[`${y}-05-05`]='こどもの日';const d2=new Date(y,6,1);while(d2.getDay()!==1)d2.setDate(d2.getDate()+1);d2.setDate(d2.getDate()+14);h[fmt(d2)]='海の日';h[`${y}-08-11`]='山の日';const d3=new Date(y,8,1);while(d3.getDay()!==1)d3.setDate(d3.getDate()+1);d3.setDate(d3.getDate()+14);h[fmt(d3)]='敬老の日';const a=Math.floor(23.2488+.242194*(y-1980)-Math.floor((y-1980)/4));h[`${y}-09-${String(a).padStart(2,'0')}`]='秋分の日';const d4=new Date(y,9,1);while(d4.getDay()!==1)d4.setDate(d4.getDate()+1);d4.setDate(d4.getDate()+7);h[fmt(d4)]='スポーツの日';h[`${y}-11-03`]='文化の日';h[`${y}-11-23`]='勤労感謝の日';return h}
-        const holidaysCache={};
-        function getAllHolidays(){const y=new Date().getFullYear();for(let i=y-1;i<=y+2;i++){if(!holidaysCache[i])Object.assign(holidaysCache,getJapaneseHolidays(i))}return holidaysCache}
+        // =============================================
+        // ✅ 祝日計算（国民の休日・振替休日対応）
+        // =============================================
         function fmt(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+
+        const holidaysCache={};
+
+        function getJapaneseHolidays(year){
+            const h={};
+            h[`${year}-01-01`]='元日';
+            const d1=new Date(year,0,1);while(d1.getDay()!==1)d1.setDate(d1.getDate()+1);d1.setDate(d1.getDate()+7);h[fmt(d1)]='成人の日';
+            h[`${year}-02-11`]='建国記念の日';h[`${year}-02-23`]='天皇誕生日';
+            const v=Math.floor(20.8431+.242194*(year-1980)-Math.floor((year-1980)/4));h[`${year}-03-${String(v).padStart(2,'0')}`]='春分の日';
+            h[`${year}-04-29`]='昭和の日';h[`${year}-05-03`]='憲法記念日';h[`${year}-05-04`]='みどりの日';h[`${year}-05-05`]='こどもの日';
+            const d2=new Date(year,6,1);while(d2.getDay()!==1)d2.setDate(d2.getDate()+1);d2.setDate(d2.getDate()+14);h[fmt(d2)]='海の日';
+            h[`${year}-08-11`]='山の日';
+            const d3=new Date(year,8,1);while(d3.getDay()!==1)d3.setDate(d3.getDate()+1);d3.setDate(d3.getDate()+14);h[fmt(d3)]='敬老の日';
+            const a=Math.floor(23.2488+.242194*(year-1980)-Math.floor((year-1980)/4));h[`${year}-09-${String(a).padStart(2,'0')}`]='秋分の日';
+            const d4=new Date(year,9,1);while(d4.getDay()!==1)d4.setDate(d4.getDate()+1);d4.setDate(d4.getDate()+7);h[fmt(d4)]='スポーツの日';
+            h[`${year}-11-03`]='文化の日';h[`${year}-11-23`]='勤労感謝の日';
+
+            // 振替休日：祝日が日曜なら翌月曜
+            Object.keys(h).forEach(dateStr=>{
+                const d=new Date(dateStr);
+                if(d.getDay()===0){
+                    const next=new Date(d);next.setDate(next.getDate()+1);
+                    const nextStr=fmt(next);
+                    if(!h[nextStr])h[nextStr]='振替休日';
+                }
+            });
+
+            // 国民の休日：祝日に挟まれた平日
+            const start=new Date(year,0,1);const end=new Date(year,11,31);
+            for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+                const dateStr=fmt(d);
+                if(h[dateStr])continue;
+                const day=d.getDay();if(day===0||day===6)continue;
+                const prev=new Date(d);prev.setDate(prev.getDate()-1);
+                const next=new Date(d);next.setDate(next.getDate()+1);
+                if(isHoliday(fmt(prev))&&isHoliday(fmt(next))){
+                    h[dateStr]='国民の休日';
+                }
+            }
+            return h;
+        }
+
+        function isHoliday(dateStr){
+            if(holidaysCache[dateStr])return true;
+            const y=parseInt(dateStr.substring(0,4));
+            if(!holidaysCache[y])Object.assign(holidaysCache,getJapaneseHolidays(y));
+            return !!holidaysCache[dateStr];
+        }
+
+        function getAllHolidays(){
+            const y=new Date().getFullYear();
+            for(let i=y-1;i<=y+2;i++){if(!holidaysCache[i])Object.assign(holidaysCache,getJapaneseHolidays(i))}
+            return holidaysCache;
+        }
+
         function fmtJP(ds){if(!ds)return '';return new Date(ds).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'})}
         function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
@@ -246,24 +289,18 @@
         function toggleTask(id){const t=tasks.find(x=>x.id===id);if(t){t.completed=!t.completed;saveTasks();refreshAll();if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate)}}
         function refreshAll(){renderTasks();renderHome();updateStats();updateCalendar();checkAlerts();checkNotifySetup()}
 
-        // =============================================
-        // 🔔 3段階アラートバナー
-        // =============================================
+        // 3段階アラートバナー
         function checkAlerts(){
             const today=new Date();today.setHours(0,0,0,0);
             const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
             const in3=new Date(today);in3.setDate(in3.getDate()+3);
             const todayStr=fmt(today),tmrStr=fmt(tmr),in3Str=fmt(in3);
             const dismissed=localStorage.getItem('alertDismissedDate');
-
             const todayTasks=tasks.filter(t=>!t.completed&&t.dueDate===todayStr);
             const tmrTasks=tasks.filter(t=>!t.completed&&t.dueDate===tmrStr);
             const soonTasks=tasks.filter(t=>!t.completed&&t.dueDate>tmrStr&&t.dueDate<=in3Str);
-
             const banner=document.getElementById('alertBanner');
             const text=document.getElementById('alertBannerText');
-
-            // 今日が最優先 → 明日 → 3日後の順
             if(todayTasks.length>0&&dismissed!==todayStr+'-today'){
                 banner.className='alert-banner visible level-today';
                 const names=todayTasks.map(t=>t.title).slice(0,3).join('、');
@@ -279,56 +316,33 @@
                 const names=soonTasks.map(t=>t.title).slice(0,3).join('、');
                 text.textContent=`📋 3日後までに期限: ${names}${soonTasks.length>3?` 他${soonTasks.length-3}件`:''}`;
                 banner.onclick=e=>{if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending')};
-            }else{
-                banner.className='alert-banner';
-            }
+            }else{banner.className='alert-banner'}
         }
-
         function dismissAlert(){
-            const todayStr=fmt(new Date());
-            const banner=document.getElementById('alertBanner');
-            // 現在のレベルを特定してdismissキーを保存
+            const todayStr=fmt(new Date());const banner=document.getElementById('alertBanner');
             if(banner.classList.contains('level-today'))localStorage.setItem('alertDismissedDate',todayStr+'-today');
             else if(banner.classList.contains('level-tomorrow'))localStorage.setItem('alertDismissedDate',todayStr+'-tomorrow');
             else if(banner.classList.contains('level-soon'))localStorage.setItem('alertDismissedDate',todayStr+'-soon');
             banner.className='alert-banner';
         }
 
-        // =============================================
-        // 🔔 Web Push通知（PCデスクトップ通知）
-        // =============================================
-        async function registerServiceWorker(){
-            if(!('serviceWorker' in navigator))return null;
-            try{return await navigator.serviceWorker.register('/sw.js')}catch(e){console.warn('SW登録失敗:',e);return null}
-        }
-
+        // Web Push通知
+        async function registerServiceWorker(){if(!('serviceWorker' in navigator))return null;try{return await navigator.serviceWorker.register('/sw.js')}catch(e){console.warn('SW登録失敗:',e);return null}}
         function checkNotifySetup(){
             const bar=document.getElementById('notifySetupBar');
             if(!('Notification' in window)||!('serviceWorker' in navigator)){bar.classList.remove('visible');return}
-            if(Notification.permission==='granted'){bar.classList.remove('visible');return}
-            if(Notification.permission==='denied'){bar.classList.remove('visible');return}
-            // default のみ表示
+            if(Notification.permission==='granted'||Notification.permission==='denied'){bar.classList.remove('visible');return}
             bar.classList.add('visible');
         }
-
         async function requestPushPermission(){
             if(!('Notification' in window)){alert('このブラウザは通知に対応していません');return}
             const perm=await Notification.requestPermission();
             if(perm==='granted'){
                 document.getElementById('notifySetupBar').classList.remove('visible');
-                new Notification('📋 タスク管理',{body:'通知が有効になりました！期限が近いタスクをお知らせします。',icon:'/icon-512.png'});
-                // Service Worker経由のPush通知も登録
-                const reg=await registerServiceWorker();
-                if(reg&&'PushManager' in window){
-                    // 注: 実際のPush配信にはVAPIDキーとバックエンドサーバーが必要
-                    // ここではブラウザ内通知のみ動作
-                }
-            }else{
-                document.getElementById('notifySetupBar').classList.remove('visible');
-            }
+                new Notification('📋 タスク管理',{body:'通知が有効になりました！',icon:'/icon-512.png'});
+                await registerServiceWorker();
+            }else{document.getElementById('notifySetupBar').classList.remove('visible')}
         }
-
-        // アプリ起動時のブラウザ内通知チェック
         function sendBrowserNotifications(){
             if(Notification.permission!=='granted')return;
             const today=new Date();today.setHours(0,0,0,0);
@@ -336,92 +350,41 @@
             const todayStr=fmt(today),tmrStr=fmt(tmr);
             const lastNotified=localStorage.getItem('lastBrowserNotifyDate');
             if(lastNotified===todayStr)return;
-
             const todayTasks=tasks.filter(t=>!t.completed&&t.dueDate===todayStr);
             const tmrTasks=tasks.filter(t=>!t.completed&&t.dueDate===tmrStr);
-
-            if(todayTasks.length>0){
-                new Notification('⚠️ 今日が期限',{body:`${todayTasks.length}件のタスクがあります`,icon:'/icon-512.png',tag:'task-today'});
-            }
-            if(tmrTasks.length>0){
-                setTimeout(()=>{
-                    new Notification('🔔 明日が期限',{body:`${tmrTasks.length}件のタスクがあります`,icon:'/icon-512.png',tag:'task-tomorrow'});
-                },todayTasks.length>0?3000:0);
-            }
-            if(todayTasks.length>0||tmrTasks.length>0){
-                localStorage.setItem('lastBrowserNotifyDate',todayStr);
-            }
+            if(todayTasks.length>0)new Notification('⚠️ 今日が期限',{body:`${todayTasks.length}件のタスクがあります`,icon:'/icon-512.png',tag:'task-today'});
+            if(tmrTasks.length>0)setTimeout(()=>new Notification('🔔 明日が期限',{body:`${tmrTasks.length}件のタスクがあります`,icon:'/icon-512.png',tag:'task-tomorrow'}),todayTasks.length>0?3000:0);
+            if(todayTasks.length>0||tmrTasks.length>0)localStorage.setItem('lastBrowserNotifyDate',todayStr);
         }
 
-        // =============================================
-        // 📥 .ics カレンダーエクスポート
-        // =============================================
+        // .icsエクスポート
         function exportICS(){
             const pending=tasks.filter(t=>!t.completed&&t.dueDate);
             if(pending.length===0){alert('未完了のタスクがありません');return}
-
             const pad=n=>String(n).padStart(2,'0');
-            const toICSDate=(dateStr,timeStr)=>{
-                const d=new Date(dateStr);
-                const y=d.getFullYear(),m=pad(d.getMonth()+1),day=pad(d.getDate());
-                if(timeStr){
-                    const[h,min]=timeStr.split(':');
-                    return `${y}${m}${day}T${pad(h)}${pad(min)}00`;
-                }
-                return `${y}${m}${day}`;
-            };
-
+            const toICSDate=(dateStr,timeStr)=>{const d=new Date(dateStr);const y=d.getFullYear(),m=pad(d.getMonth()+1),day=pad(d.getDate());if(timeStr){const[h,min]=timeStr.split(':');return `${y}${m}${day}T${pad(h)}${pad(min)}00`}return `${y}${m}${day}`};
             let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//TaskApp//JA\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n';
             pending.forEach(t=>{
-                const dtStart=toICSDate(t.dueDate,t.dueTime);
-                const isAllDay=!t.dueTime;
-                const uid=`task-${t.id}@taskapp`;
-                const summary=t.title.replace(/[,;]/g,' ');
+                const dtStart=toICSDate(t.dueDate,t.dueTime);const isAllDay=!t.dueTime;
+                const uid=`task-${t.id}@taskapp`;const summary=t.title.replace(/[,;]/g,' ');
                 const priority=t.priority==='high'?1:t.priority==='medium'?5:9;
-
-                ics+='BEGIN:VEVENT\r\n';
-                ics+=`UID:${uid}\r\n`;
+                ics+='BEGIN:VEVENT\r\n';ics+=`UID:${uid}\r\n`;
                 ics+=`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z\r\n`;
-                if(isAllDay){
-                    ics+=`DTSTART;VALUE=DATE:${dtStart}\r\n`;
-                    // 終日イベントは翌日をENDに
-                    const next=new Date(t.dueDate);next.setDate(next.getDate()+1);
-                    ics+=`DTEND;VALUE=DATE:${toICSDate(fmt(next),null)}\r\n`;
-                }else{
-                    ics+=`DTSTART:${dtStart}\r\n`;
-                    // 1時間のイベントとして設定
-                    const endD=new Date(`${t.dueDate}T${t.dueTime}:00`);
-                    endD.setHours(endD.getHours()+1);
-                    ics+=`DTEND:${toICSDate(fmt(endD),pad(endD.getHours())+':'+pad(endD.getMinutes()))}\r\n`;
-                }
-                ics+=`SUMMARY:${summary}\r\n`;
-                ics+=`DESCRIPTION:優先度: ${{low:'低',medium:'中',high:'高'}[t.priority]}\r\n`;
-                ics+=`PRIORITY:${priority}\r\n`;
-                // リマインダー: 当日の朝9時（終日）または1時間前（時刻指定）
-                if(isAllDay){
-                    ics+='BEGIN:VALARM\r\nTRIGGER:-PT0S\r\nACTION:DISPLAY\r\nDESCRIPTION:今日が期限です\r\nEND:VALARM\r\n';
-                }else{
-                    ics+='BEGIN:VALARM\r\nTRIGGER:-PT1H\r\nACTION:DISPLAY\r\nDESCRIPTION:1時間後に期限です\r\nEND:VALARM\r\n';
-                }
+                if(isAllDay){ics+=`DTSTART;VALUE=DATE:${dtStart}\r\n`;const next=new Date(t.dueDate);next.setDate(next.getDate()+1);ics+=`DTEND;VALUE=DATE:${toICSDate(fmt(next),null)}\r\n`}
+                else{ics+=`DTSTART:${dtStart}\r\n`;const endD=new Date(`${t.dueDate}T${t.dueTime}:00`);endD.setHours(endD.getHours()+1);ics+=`DTEND:${toICSDate(fmt(endD),pad(endD.getHours())+':'+pad(endD.getMinutes()))}\r\n`}
+                ics+=`SUMMARY:${summary}\r\n`;ics+=`DESCRIPTION:優先度: ${{low:'低',medium:'中',high:'高'}[t.priority]}\r\n`;ics+=`PRIORITY:${priority}\r\n`;
+                if(isAllDay)ics+='BEGIN:VALARM\r\nTRIGGER:-PT0S\r\nACTION:DISPLAY\r\nDESCRIPTION:今日が期限です\r\nEND:VALARM\r\n';
+                else ics+='BEGIN:VALARM\r\nTRIGGER:-PT1H\r\nACTION:DISPLAY\r\nDESCRIPTION:1時間後に期限です\r\nEND:VALARM\r\n';
                 ics+='END:VEVENT\r\n';
             });
             ics+='END:VCALENDAR\r\n';
-
-            const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
-            const url=URL.createObjectURL(blob);
-            const a=document.createElement('a');
-            a.href=url;
-            a.download='tasks.ics';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});const url=URL.createObjectURL(blob);
+            const a=document.createElement('a');a.href=url;a.download='tasks.ics';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
         }
 
         // 画面切替
         function switchScreen(s){
-            currentScreen=s;
-            document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+            currentScreen=s;document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
             document.getElementById(`${s}Screen`).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.screen===s));
             document.getElementById('screenTitle').textContent={home:'📋 タスク管理',list:'📝 タスクリスト',calendar:'📅 カレンダー'}[s];
@@ -447,8 +410,7 @@
 
         // リスト
         function renderTasks(){
-            const el=document.getElementById('taskList');
-            let filtered=tasks;
+            const el=document.getElementById('taskList');let filtered=tasks;
             if(currentFilter==='pending')filtered=tasks.filter(t=>!t.completed);
             else if(currentFilter==='completed')filtered=tasks.filter(t=>t.completed);
             filtered.sort((a,b)=>{if(!a.dueDate)return 1;if(!b.dueDate)return -1;return new Date(a.dueDate+'T'+(a.dueTime||'23:59'))-new Date(b.dueDate+'T'+(b.dueTime||'23:59'))});
@@ -484,8 +446,7 @@
             openModal('taskModal');
         }
         function openDayTasksModal(ds){
-            selectedDayDate=ds;
-            document.getElementById('dayTasksTitle').innerHTML=`📅 タスク一覧 <span class="date-badge">${fmtJP(ds)}</span>`;
+            selectedDayDate=ds;document.getElementById('dayTasksTitle').innerHTML=`📅 タスク一覧 <span class="date-badge">${fmtJP(ds)}</span>`;
             document.getElementById('dayTasksDateLabel').textContent='';renderDayTasks(ds);openModal('dayTasksModal');
         }
         function renderDayTasks(ds){
@@ -525,7 +486,6 @@
         document.addEventListener('DOMContentLoaded',()=>{
             loadTasks();refreshAll();initCalendar();
             registerServiceWorker();
-            // ブラウザ通知チェック（起動時1回）
             setTimeout(sendBrowserNotifications,1000);
         });
         document.querySelectorAll('.modal').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('active')})});
