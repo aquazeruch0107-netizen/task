@@ -216,7 +216,7 @@
             </div>
             <div class="alert-banner" id="alertBanner"><span id="alertBannerText"></span><button class="close-alert" onclick="dismissAlert()">&times;</button></div>
             <div class="sync-banner" id="syncBanner"><span>☁️ ログイン中：タスクは全端末で自動同期されます</span><button class="close-sync" onclick="dismissSyncBanner()">&times;</button></div>
-            <div class="notify-setup-bar" id="notifySetupBar"><span>🔔 デスクトップ通知を有効にすると、アプリを閉じていても期限をお知らせします</span><button onclick="requestPushPermission()">有効にする</button></div>
+            <div class="notify-setup-bar" id="notifySetupBar"><span>🔔 アプリを開いている間、デスクトップ通知で期限をお知らせできます</span><button onclick="requestPushPermission()">有効にする</button></div>
             <div class="screen active" id="homeScreen">
                 <div class="home-content">
                     <div class="stats">
@@ -230,6 +230,7 @@
                         <h3>📲 カレンダー連携</h3>
                         <p style="font-size:.8em;color:var(--text-sub);margin-bottom:10px;">未完了タスクをカレンダーアプリに登録して、OS標準のリマインダー通知を受け取れます</p>
                         <button class="btn btn-outline" onclick="exportICS()" style="width:100%">📥 .icsファイルをダウンロード</button>
+                        <p style="font-size:.7em;color:var(--text-sub);margin-top:8px;">※ 🔔 リマインダーはアプリを開いている間のみ動作します。閉じた状態での通知が必要な場合は上記.icsファイルをご利用ください</p>
                     </div>
                 </div>
             </div>
@@ -418,66 +419,47 @@
     function toggleTask(id){var t=tasks.find(function(x){return x.id===id;});if(t){t.completed=!t.completed;persistTasks();renderAll();if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate);}}
     function renderAll(){renderTasks();renderHome();updateStats();updateCalendar();checkAlerts();checkNotifySetup();}
 
-    // =============================================
-    // 🔔 リマインダー計算
-    // =============================================
     function getReminderTime(task){
         if(!task.reminder||!task.dueDate)return null;
         var dueDate=task.dueDate;
         var dueTime=task.dueTime||null;
         switch(task.reminder){
-            case 'same_0900':
-                return new Date(dueDate+'T09:00:00');
+            case 'same_0900':return new Date(dueDate+'T09:00:00');
             case 'before_1h':
                 if(!dueTime)return new Date(dueDate+'T09:00:00');
-                var dt1=new Date(dueDate+'T'+dueTime+':00');
-                dt1.setHours(dt1.getHours()-1);
-                return dt1;
+                var dt1=new Date(dueDate+'T'+dueTime+':00');dt1.setHours(dt1.getHours()-1);return dt1;
             case 'before_30m':
                 if(!dueTime)return new Date(dueDate+'T09:00:00');
-                var dt2=new Date(dueDate+'T'+dueTime+':00');
-                dt2.setMinutes(dt2.getMinutes()-30);
-                return dt2;
+                var dt2=new Date(dueDate+'T'+dueTime+':00');dt2.setMinutes(dt2.getMinutes()-30);return dt2;
             case 'prev_2100':
-                var prev=new Date(dueDate);
-                prev.setDate(prev.getDate()-1);
-                return new Date(fmt(prev)+'T21:00:00');
-            default:
-                return null;
+                var prev=new Date(dueDate);prev.setDate(prev.getDate()-1);return new Date(fmt(prev)+'T21:00:00');
+            default:return null;
         }
     }
-
     function getReminderLabel(r){
         var labels={'same_0900':'当日 9:00','before_1h':'1時間前','before_30m':'30分前','prev_2100':'前日 21:00'};
         return labels[r]||'';
     }
 
-    // =============================================
-    // 🔔 リマインダーチェック（1分間隔）
-    // =============================================
     function checkReminders(){
         var now=new Date();
         var notified=JSON.parse(localStorage.getItem('notifiedReminders')||'{}');
         var hasNewReminder=false;
         var reminderTasks=[];
-
         tasks.forEach(function(t){
             if(t.completed)return;
             var rt=getReminderTime(t);
             if(!rt)return;
             var key='reminder_'+t.id;
             if(notified[key])return;
-            // 現在時刻がリマインダー時刻を過ぎており、かつ24時間以内
             if(now>=rt&&(now-rt)<86400000){
                 notified[key]=true;
                 hasNewReminder=true;
                 reminderTasks.push(t);
             }
         });
-
         if(hasNewReminder){
             localStorage.setItem('notifiedReminders',JSON.stringify(notified));
-            // ブラウザ通知
             if(Notification.permission==='granted'){
                 reminderTasks.forEach(function(t,i){
                     setTimeout(function(){
@@ -485,7 +467,6 @@
                     },i*2000);
                 });
             }
-            // アプリ内バナー（最新1件のみ）
             var latest=reminderTasks[reminderTasks.length-1];
             var b=document.getElementById('alertBanner'),tx=document.getElementById('alertBannerText');
             b.className='alert-banner visible level-reminder';
@@ -493,14 +474,12 @@
             b.onclick=function(e){if(e.target.classList.contains('close-alert'))return;switchScreen('list');setFilter('pending');};
         }
     }
-
     function startReminderChecker(){
         if(reminderCheckInterval)clearInterval(reminderCheckInterval);
         checkReminders();
         reminderCheckInterval=setInterval(checkReminders,60000);
     }
 
-    // アラートバナー
     function checkAlerts(){
         var today=new Date();today.setHours(0,0,0,0);
         var tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
@@ -511,7 +490,6 @@
         var mT=tasks.filter(function(t){return !t.completed&&t.dueDate===tms;});
         var sT=tasks.filter(function(t){return !t.completed&&t.dueDate>tms&&t.dueDate<=i3s;});
         var b=document.getElementById('alertBanner'),tx=document.getElementById('alertBannerText');
-        // リマインダーバナーが表示中の場合は上書きしない
         if(b.classList.contains('level-reminder'))return;
         if(tT.length>0&&dis!==ts+'-today'){
             b.className='alert-banner visible level-today';
@@ -532,7 +510,6 @@
         if(b.classList.contains('level-today'))localStorage.setItem('alertDismissedDate',ts+'-today');
         else if(b.classList.contains('level-tomorrow'))localStorage.setItem('alertDismissedDate',ts+'-tomorrow');
         else if(b.classList.contains('level-soon'))localStorage.setItem('alertDismissedDate',ts+'-soon');
-        else if(b.classList.contains('level-reminder')){/* リマインダーは再表示OK */}
         b.className='alert-banner';
     }
     function showSyncBannerIfNeeded(){if(!currentUser)return;if(!localStorage.getItem('syncBannerDismissed_'+currentUser.uid))document.getElementById('syncBanner').classList.add('visible');}
@@ -574,12 +551,11 @@
             ics+='SUMMARY:'+t.title.replace(/[,;]/g,' ')+'\r\n';
             ics+='DESCRIPTION:優先度: '+({low:'低',medium:'中',high:'高'}[t.priority])+'\r\n';
             ics+='PRIORITY:'+(t.priority==='high'?1:t.priority==='medium'?5:9)+'\r\n';
-            // リマインダー設定をVALARMに反映
             var alarmTrigger='-PT0S';
             if(t.reminder==='before_1h')alarmTrigger='-PT1H';
             else if(t.reminder==='before_30m')alarmTrigger='-PT30M';
             else if(t.reminder==='prev_2100')alarmTrigger='-P1DT3H';
-            else if(t.reminder==='same_0900'&&t.dueTime)alarmTrigger='-PT'+((parseInt(t.dueTime.split(':')[0])-9)*60+parseInt(t.dueTime.split(':')[1]))+'M';
+            else if(t.reminder==='same_0900'&&t.dueTime){var dh=parseInt(t.dueTime.split(':')[0]);var dm=parseInt(t.dueTime.split(':')[1]);alarmTrigger='-PT'+((dh-9)*60+dm)+'M';}
             var alarmDesc=t.reminder?'リマインダー: '+getReminderLabel(t.reminder):'今日が期限です';
             ics+='BEGIN:VALARM\r\nTRIGGER:'+alarmTrigger+'\r\nACTION:DISPLAY\r\nDESCRIPTION:'+alarmDesc+'\r\nEND:VALARM\r\n';
             ics+='END:VEVENT\r\n';
@@ -683,12 +659,9 @@
     function initCalendar(){
         getAllHolidays();
         calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{
-            initialView:'dayGridMonth',
-            locale:'ja',
-            headerToolbar:{left:'prev',center:'title',right:'next'},
-            height:'100%',
-            dayMaxEvents:true,
-            moreLinkText:function(n){return '他'+n+'件';},
+            initialView:'dayGridMonth',locale:'ja',
+            headerToolbar:{left:'prev',center:'title',right:'next'},height:'100%',
+            dayMaxEvents:true,moreLinkText:function(n){return '他'+n+'件';},
             dayCellClassNames:function(a){return holidaysCache[fmt(a.date)]?['fc-holiday']:[];},
             dayCellContent:function(a){var h=holidaysCache[fmt(a.date)];var html='<span class="fc-daygrid-day-number">'+a.date.getDate()+'</span>';if(h)html+='<div class="fc-holiday-name">'+h+'</div>';return{html:html};},
             events:function(i,cb){cb(tasks.filter(function(t){return t.dueDate;}).map(function(t){return{title:t.title,start:t.dueTime?t.dueDate+'T'+t.dueTime+':00':t.dueDate,allDay:!t.dueTime,backgroundColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',borderColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',textColor:t.priority==='medium'?'#000':'#fff',extendedProps:{taskId:t.id}};}));},
@@ -719,4 +692,3 @@
     </script>
 </body>
 </html>
-
