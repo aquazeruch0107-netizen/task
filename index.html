@@ -217,13 +217,16 @@
         window._presetTime=null;
 
         // =============================================
-        // ✅ 祝日計算（国民の休日・振替休日対応）
+        // ✅ 祝日計算（再帰呼び出しなし・安全版）
         // =============================================
         function fmt(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+        function fmtJP(ds){if(!ds)return '';return new Date(ds).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'})}
+        function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
         const holidaysCache={};
 
-        function getJapaneseHolidays(year){
+        // 基本祝日のみ返す（振替・国民の休日は含まない）
+        function getBaseHolidays(year){
             const h={};
             h[`${year}-01-01`]='元日';
             const d1=new Date(year,0,1);while(d1.getDay()!==1)d1.setDate(d1.getDate()+1);d1.setDate(d1.getDate()+7);h[fmt(d1)]='成人の日';
@@ -236,47 +239,49 @@
             const a=Math.floor(23.2488+.242194*(year-1980)-Math.floor((year-1980)/4));h[`${year}-09-${String(a).padStart(2,'0')}`]='秋分の日';
             const d4=new Date(year,9,1);while(d4.getDay()!==1)d4.setDate(d4.getDate()+1);d4.setDate(d4.getDate()+7);h[fmt(d4)]='スポーツの日';
             h[`${year}-11-03`]='文化の日';h[`${year}-11-23`]='勤労感謝の日';
-
-            // 振替休日：祝日が日曜なら翌月曜
-            Object.keys(h).forEach(dateStr=>{
-                const d=new Date(dateStr);
-                if(d.getDay()===0){
-                    const next=new Date(d);next.setDate(next.getDate()+1);
-                    const nextStr=fmt(next);
-                    if(!h[nextStr])h[nextStr]='振替休日';
-                }
-            });
-
-            // 国民の休日：祝日に挟まれた平日
-            const start=new Date(year,0,1);const end=new Date(year,11,31);
-            for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
-                const dateStr=fmt(d);
-                if(h[dateStr])continue;
-                const day=d.getDay();if(day===0||day===6)continue;
-                const prev=new Date(d);prev.setDate(prev.getDate()-1);
-                const next=new Date(d);next.setDate(next.getDate()+1);
-                if(isHoliday(fmt(prev))&&isHoliday(fmt(next))){
-                    h[dateStr]='国民の休日';
-                }
-            }
             return h;
         }
 
-        function isHoliday(dateStr){
-            if(holidaysCache[dateStr])return true;
-            const y=parseInt(dateStr.substring(0,4));
-            if(!holidaysCache[y])Object.assign(holidaysCache,getJapaneseHolidays(y));
-            return !!holidaysCache[dateStr];
-        }
-
+        // 全年度キャッシュ構築後に振替・国民の休日を適用
         function getAllHolidays(){
             const y=new Date().getFullYear();
-            for(let i=y-1;i<=y+2;i++){if(!holidaysCache[i])Object.assign(holidaysCache,getJapaneseHolidays(i))}
+            // Step 1: 基本祝日を全年度分キャッシュ
+            for(let i=y-1;i<=y+2;i++){
+                if(!holidaysCache[i]){
+                    const base=getBaseHolidays(i);
+                    Object.assign(holidaysCache,base);
+                    holidaysCache[i]=true; // 構築済みフラグ
+                }
+            }
+            // Step 2: 振替休日を適用
+            for(let i=y-1;i<=y+2;i++){
+                const base=getBaseHolidays(i);
+                Object.keys(base).forEach(dateStr=>{
+                    const d=new Date(dateStr);
+                    if(d.getDay()===0){
+                        const next=new Date(d);next.setDate(next.getDate()+1);
+                        const nextStr=fmt(next);
+                        if(!holidaysCache[nextStr])holidaysCache[nextStr]='振替休日';
+                    }
+                });
+            }
+            // Step 3: 国民の休日を適用
+            for(let yr=y-1;yr<=y+2;yr++){
+                const start=new Date(yr,0,1);const end=new Date(yr,11,31);
+                for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+                    const dateStr=fmt(d);
+                    if(holidaysCache[dateStr])continue;
+                    const day=d.getDay();if(day===0||day===6)continue;
+                    const prev=new Date(d);prev.setDate(prev.getDate()-1);
+                    const next=new Date(d);next.setDate(next.getDate()+1);
+                    const prevStr=fmt(prev);const nextStr=fmt(next);
+                    if(holidaysCache[prevStr]&&holidaysCache[nextStr]){
+                        holidaysCache[dateStr]='国民の休日';
+                    }
+                }
+            }
             return holidaysCache;
         }
-
-        function fmtJP(ds){if(!ds)return '';return new Date(ds).toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'})}
-        function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
         // LocalStorage
         function saveTasks(){localStorage.setItem('tasks',JSON.stringify(tasks))}
