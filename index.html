@@ -94,12 +94,13 @@
         .fc .fc-toolbar .fc-button-group:not(.fc-prev-button):not(.fc-next-button),.fc .fc-today-button{display:none!important}
         .fc .fc-toolbar-title{white-space:nowrap!important;font-size:1em!important}
         .fc .fc-prev-button,.fc .fc-next-button{background:var(--primary)!important;border:none!important;border-radius:8px!important;padding:5px 10px!important;font-size:.85em!important}
-        .fc .fc-daygrid-day-frame{min-height:70px!important;max-height:70px!important;overflow:hidden!important;position:relative!important}
+        .fc .fc-daygrid-day-frame{min-height:80px!important;max-height:80px!important;overflow:hidden!important;position:relative!important}
         .fc .fc-daygrid-day-top{position:relative!important;height:100%!important}
         .fc .fc-daygrid-day-number{position:absolute!important;top:2px!important;right:4px!important;padding:0!important;font-size:.8em!important;font-weight:700!important;z-index:2!important;line-height:1!important}
         .fc-holiday-name{position:absolute!important;bottom:2px!important;left:3px!important;right:3px!important;font-size:.55em!important;color:var(--holiday)!important;line-height:1.1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;z-index:1!important;pointer-events:none!important}
-        .fc .fc-daygrid-day-events{position:absolute!important;top:18px!important;left:2px!important;right:2px!important;bottom:16px!important;max-height:none!important;overflow:hidden!important}
+        .fc .fc-daygrid-day-events{position:absolute!important;top:18px!important;left:2px!important;right:2px!important;bottom:14px!important;max-height:none!important;overflow:hidden!important}
         .fc .fc-daygrid-event{font-size:.6em!important;padding:1px 2px!important;margin:1px 0!important;border-radius:2px!important;line-height:1.2!important}
+        .fc .fc-daygrid-day-more{font-size:.55em!important;color:var(--primary)!important;font-weight:700!important;padding:0 2px!important;cursor:pointer!important}
         .bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:calc(env(safe-area-inset-bottom) + 6px);padding-top:6px}
         .nav-btn{flex:1;padding:8px 0;background:transparent;border:none;cursor:pointer;font-size:11px;font-weight:600;color:var(--text-sub);display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;justify-content:center}
         .nav-btn .nav-icon{font-size:1.4em;line-height:1}
@@ -167,12 +168,13 @@
             .task-meta{font-size:.8em}
             .task-actions .btn{padding:8px 14px;font-size:12px}
             .calendar-content{padding:16px}
-            .fc .fc-daygrid-day-frame{min-height:110px!important;max-height:110px!important}
+            .fc .fc-daygrid-day-frame{min-height:120px!important;max-height:120px!important}
             .fc .fc-toolbar-title{font-size:1.4em!important}
-            .fc .fc-daygrid-day-events{top:24px!important;bottom:22px!important}
+            .fc .fc-daygrid-day-events{top:24px!important;bottom:18px!important}
             .fc-holiday-name{font-size:.65em!important;bottom:4px!important}
             .fc .fc-daygrid-day-number{font-size:.9em!important;top:4px!important}
             .fc .fc-daygrid-event{font-size:.7em!important;padding:2px 4px!important}
+            .fc .fc-daygrid-day-more{font-size:.65em!important}
             .modal-content{max-width:520px}
             .modal-actions .btn{flex:none;padding:12px 28px}
             .day-task-footer .btn{flex:none}
@@ -185,9 +187,10 @@
             .stat-item strong{font-size:2.5em}
             .list-content{padding:32px 48px;max-width:1000px}
             .calendar-content{padding:24px}
-            .fc .fc-daygrid-day-frame{min-height:130px!important;max-height:130px!important}
+            .fc .fc-daygrid-day-frame{min-height:140px!important;max-height:140px!important}
             .fc .fc-toolbar-title{font-size:1.6em!important}
             .fc .fc-daygrid-event{font-size:.75em!important}
+            .fc .fc-daygrid-day-more{font-size:.7em!important}
         }
     </style>
 </head>
@@ -578,8 +581,12 @@
     function initCalendar(){
         getAllHolidays();
         calendar=new FullCalendar.Calendar(document.getElementById('calendar'),{
-            initialView:'dayGridMonth',locale:'ja',
-            headerToolbar:{left:'prev',center:'title',right:'next'},height:'100%',
+            initialView:'dayGridMonth',
+            locale:'ja',
+            headerToolbar:{left:'prev',center:'title',right:'next'},
+            height:'100%',
+            dayMaxEvents:true,
+            moreLinkText:function(n){return '他'+n+'件';},
             dayCellClassNames:function(a){return holidaysCache[fmt(a.date)]?['fc-holiday']:[];},
             dayCellContent:function(a){var h=holidaysCache[fmt(a.date)];var html='<span class="fc-daygrid-day-number">'+a.date.getDate()+'</span>';if(h)html+='<div class="fc-holiday-name">'+h+'</div>';return{html:html};},
             events:function(i,cb){cb(tasks.filter(function(t){return t.dueDate;}).map(function(t){return{title:t.title,start:t.dueTime?t.dueDate+'T'+t.dueTime+':00':t.dueDate,allDay:!t.dueTime,backgroundColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',borderColor:t.completed?'#28a745':t.priority==='high'?'#dc3545':t.priority==='medium'?'#ffc107':'#4a6fa5',textColor:t.priority==='medium'?'#000':'#fff',extendedProps:{taskId:t.id}};}));},
