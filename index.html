@@ -27,9 +27,9 @@
         .sidebar-auth-btn:hover{border-color:var(--primary);color:var(--primary)}
         .sidebar-auth-btn.logged-in{border-color:var(--success);color:var(--success);background:#f0fff4}
         .main-area{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
-        .mobile-header{display:flex;background:var(--primary);color:#fff;padding:14px 20px;flex-shrink:0;text-align:center;align-items:center;justify-content:center;position:relative}
+        .mobile-header{display:flex;background:var(--primary);color:#fff;padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top));flex-shrink:0;text-align:center;align-items:center;justify-content:center;position:relative}
         .mobile-header h1{font-size:1.15em;font-weight:700}
-        .mobile-auth-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.7em;opacity:.9;cursor:pointer;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.2);border:none;color:#fff}
+        .mobile-auth-btn{position:absolute;right:12px;top:calc(50% + env(safe-area-inset-top) / 2);transform:translateY(-50%);font-size:.7em;opacity:.9;cursor:pointer;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.2);border:none;color:#fff}
         .alert-banner{padding:10px 20px;text-align:center;font-size:.85em;font-weight:600;flex-shrink:0;display:none;cursor:pointer;align-items:center;justify-content:center;gap:8px}
         .alert-banner.visible{display:flex}
         .alert-banner.level-today{background:linear-gradient(135deg,#dc3545,#ff6b6b);color:#fff}
