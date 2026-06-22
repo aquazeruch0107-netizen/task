@@ -148,6 +148,10 @@
         .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
         @keyframes spin{to{transform:rotate(360deg)}}
         .loading-text{font-size:.9em;color:var(--text-sub);font-weight:600}
+        .notify-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;font-size:.85em;font-weight:600;margin-bottom:10px}
+        .notify-status.on{background:#f0fff4;color:var(--success);border:1.5px solid var(--success)}
+        .notify-status.off{background:#fff5f5;color:var(--danger);border:1.5px solid var(--danger)}
+        .notify-status.unknown{background:var(--bg);color:var(--text-sub);border:1.5px solid var(--border)}
         @media(min-width:769px){
             .sidebar{display:flex}
             .mobile-header{display:none}
@@ -227,10 +231,15 @@
                     <div class="home-section"><h3>📅 今日のタスク</h3><div id="todayTasksList"></div></div>
                     <div class="home-section"><h3>⚠️ 期限切れ・明日までのタスク</h3><div id="urgentTasksList"></div></div>
                     <div class="home-section">
+                        <h3>🔔 通知設定</h3>
+                        <div id="notifyStatusDisplay" class="notify-status unknown">確認中...</div>
+                        <p style="font-size:.75em;color:var(--text-sub);margin-bottom:10px;">ブラウザ通知はアプリを開いている間のみ動作します。閉じた状態での通知が必要な場合は.icsファイルをご利用ください</p>
+                        <button class="btn btn-outline" id="notifyToggleBtn" onclick="toggleNotification()" style="width:100%;margin-bottom:10px;display:none">通知を有効にする</button>
+                    </div>
+                    <div class="home-section">
                         <h3>📲 カレンダー連携</h3>
                         <p style="font-size:.8em;color:var(--text-sub);margin-bottom:10px;">未完了タスクをカレンダーアプリに登録して、OS標準のリマインダー通知を受け取れます</p>
                         <button class="btn btn-outline" onclick="exportICS()" style="width:100%">📥 .icsファイルをダウンロード</button>
-                        <p style="font-size:.7em;color:var(--text-sub);margin-top:8px;">※ 🔔 リマインダーはアプリを開いている間のみ動作します。閉じた状態での通知が必要な場合は上記.icsファイルをご利用ください</p>
                     </div>
                 </div>
             </div>
@@ -417,7 +426,7 @@
     function updateTask(id,u){var i=tasks.findIndex(function(t){return t.id===id;});if(i!==-1){tasks[i]=Object.assign({},tasks[i],u);persistTasks();renderAll();}}
     function deleteTask(id){if(confirm('削除しますか？')){tasks=tasks.filter(function(t){return t.id!==id;});persistTasks();renderAll();if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate);}}
     function toggleTask(id){var t=tasks.find(function(x){return x.id===id;});if(t){t.completed=!t.completed;persistTasks();renderAll();if(selectedDayDate&&document.getElementById('dayTasksModal').classList.contains('active'))renderDayTasks(selectedDayDate);}}
-    function renderAll(){renderTasks();renderHome();updateStats();updateCalendar();checkAlerts();checkNotifySetup();}
+    function renderAll(){renderTasks();renderHome();updateStats();updateCalendar();checkAlerts();checkNotifySetup();updateNotifyStatusDisplay();}
 
     function getReminderTime(task){
         if(!task.reminder||!task.dueDate)return null;
@@ -515,12 +524,61 @@
     function showSyncBannerIfNeeded(){if(!currentUser)return;if(!localStorage.getItem('syncBannerDismissed_'+currentUser.uid))document.getElementById('syncBanner').classList.add('visible');}
     function dismissSyncBanner(){document.getElementById('syncBanner').classList.remove('visible');if(currentUser)localStorage.setItem('syncBannerDismissed_'+currentUser.uid,'true');}
     function registerServiceWorker(){if(!('serviceWorker' in navigator))return Promise.resolve(null);return navigator.serviceWorker.register('/sw.js').catch(function(e){return null;});}
-    function checkNotifySetup(){var bar=document.getElementById('notifySetupBar');if(!('Notification' in window)||!('serviceWorker' in navigator)){bar.classList.remove('visible');return;}if(Notification.permission==='granted'||Notification.permission==='denied'){bar.classList.remove('visible');return;}bar.classList.add('visible');}
+
+    // =============================================
+    // 🔔 通知ステータス表示・切り替え
+    // =============================================
+    function updateNotifyStatusDisplay(){
+        var display=document.getElementById('notifyStatusDisplay');
+        var toggleBtn=document.getElementById('notifyToggleBtn');
+        if(!('Notification' in window)){
+            display.className='notify-status off';
+            display.textContent='❌ このブラウザは通知に対応していません';
+            toggleBtn.style.display='none';
+            return;
+        }
+        var perm=Notification.permission;
+        if(perm==='granted'){
+            display.className='notify-status on';
+            display.textContent='✅ デスクトップ通知は有効です';
+            toggleBtn.style.display='none';
+        }else if(perm==='denied'){
+            display.className='notify-status off';
+            display.textContent='❌ 通知がブロックされています。ブラウザの設定から許可してください';
+            toggleBtn.style.display='none';
+        }else{
+            display.className='notify-status unknown';
+            display.textContent='⏸️ 通知はまだ有効になっていません';
+            toggleBtn.style.display='block';
+            toggleBtn.textContent='通知を有効にする';
+        }
+    }
+    function toggleNotification(){
+        if(!('Notification' in window))return;
+        Notification.requestPermission().then(function(p){
+            updateNotifyStatusDisplay();
+            if(p==='granted'){
+                new Notification('\ud83d\udccb タスク管理',{body:'通知が有効になりました！',icon:'/icon-512.png'});
+                registerServiceWorker();
+            }
+        });
+    }
+
+    function checkNotifySetup(){
+        var bar=document.getElementById('notifySetupBar');
+        if(!('Notification' in window)){bar.classList.remove('visible');return;}
+        if(Notification.permission!=='default'){bar.classList.remove('visible');return;}
+        bar.classList.add('visible');
+    }
     function requestPushPermission(){
         if(!('Notification' in window))return;
         Notification.requestPermission().then(function(p){
-            if(p==='granted'){document.getElementById('notifySetupBar').classList.remove('visible');new Notification('\ud83d\udccb タスク管理',{body:'通知が有効になりました！',icon:'/icon-512.png'});registerServiceWorker();}
-            else{document.getElementById('notifySetupBar').classList.remove('visible');}
+            if(p==='granted'){
+                document.getElementById('notifySetupBar').classList.remove('visible');
+                new Notification('\ud83d\udccb タスク管理',{body:'通知が有効になりました！',icon:'/icon-512.png'});
+                registerServiceWorker();
+                updateNotifyStatusDisplay();
+            }else{document.getElementById('notifySetupBar').classList.remove('visible');updateNotifyStatusDisplay();}
         });
     }
     function sendBrowserNotifications(){
@@ -692,3 +750,4 @@
     </script>
 </body>
 </html>
+
