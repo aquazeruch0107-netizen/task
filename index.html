@@ -29,7 +29,10 @@
         .main-area{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
         .mobile-header{display:flex;background:var(--primary);color:#fff;padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top));flex-shrink:0;text-align:center;align-items:center;justify-content:center;position:relative}
         .mobile-header h1{font-size:1.15em;font-weight:700}
-        .mobile-auth-btn{position:absolute;right:12px;top:calc(50% + env(safe-area-inset-top) / 2);transform:translateY(-50%);font-size:.7em;opacity:.9;cursor:pointer;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.2);border:none;color:#fff}
+        .mobile-header-btn{position:absolute;top:calc(50% + env(safe-area-inset-top) / 2);transform:translateY(-50%);font-size:1.2em;opacity:.9;cursor:pointer;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,.2);border:none;color:#fff;line-height:1}
+        .mobile-header-btn:hover{background:rgba(255,255,255,.3)}
+        .mobile-header-btn.left{left:12px}
+        .mobile-header-btn.right{right:12px;font-size:.7em}
         .alert-banner{padding:10px 20px;text-align:center;font-size:.85em;font-weight:600;flex-shrink:0;display:none;cursor:pointer;align-items:center;justify-content:center;gap:8px}
         .alert-banner.visible{display:flex}
         .alert-banner.level-today{background:linear-gradient(135deg,#dc3545,#ff6b6b);color:#fff}
@@ -55,6 +58,9 @@
         .stat-item span{font-size:.75em;opacity:.9}
         .home-section{background:var(--bg);border-radius:12px;padding:14px;margin-bottom:12px}
         .home-section h3{color:var(--text);margin-bottom:10px;font-size:.95em}
+        .home-settings-panel{display:none;animation:fadeIn .2s ease}
+        .home-settings-panel.visible{display:block}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
         .today-task-item{background:var(--surface);padding:10px 12px;border-radius:8px;margin-bottom:6px;border-left:4px solid var(--primary);display:flex;justify-content:space-between;align-items:center;gap:8px}
         .today-task-item:last-child{margin-bottom:0}
         .today-task-item.overdue{border-left-color:var(--danger);background:#fff5f5}
@@ -215,8 +221,9 @@
         </aside>
         <div class="main-area">
             <div class="mobile-header">
+                <button class="mobile-header-btn left" onclick="toggleHomeSettings()" aria-label="設定">⚙️</button>
                 <h1 id="mobileTitle">📋 タスク管理</h1>
-                <button class="mobile-auth-btn" id="mobileAuthBtn" onclick="openAuthModal()">🔒 未ログイン</button>
+                <button class="mobile-header-btn right" id="mobileAuthBtn" onclick="openAuthModal()">🔒 未ログイン</button>
             </div>
             <div class="alert-banner" id="alertBanner"><span id="alertBannerText"></span><button class="close-alert" onclick="dismissAlert()">&times;</button></div>
             <div class="sync-banner" id="syncBanner"><span>☁️ ログイン中：タスクは全端末で自動同期されます</span><button class="close-sync" onclick="dismissSyncBanner()">&times;</button></div>
@@ -230,16 +237,18 @@
                     </div>
                     <div class="home-section"><h3>📅 今日のタスク</h3><div id="todayTasksList"></div></div>
                     <div class="home-section"><h3>⚠️ 期限切れ・明日までのタスク</h3><div id="urgentTasksList"></div></div>
-                    <div class="home-section">
-                        <h3>🔔 通知設定</h3>
-                        <div id="notifyStatusDisplay" class="notify-status unknown">確認中...</div>
-                        <p style="font-size:.75em;color:var(--text-sub);margin-bottom:10px;">ブラウザ通知はアプリを開いている間のみ動作します。閉じた状態での通知が必要な場合は.icsファイルをご利用ください</p>
-                        <button class="btn btn-outline" id="notifyToggleBtn" onclick="toggleNotification()" style="width:100%;margin-bottom:10px;display:none">通知を有効にする</button>
-                    </div>
-                    <div class="home-section">
-                        <h3>📲 カレンダー連携</h3>
-                        <p style="font-size:.8em;color:var(--text-sub);margin-bottom:10px;">未完了タスクをカレンダーアプリに登録して、OS標準のリマインダー通知を受け取れます</p>
-                        <button class="btn btn-outline" onclick="exportICS()" style="width:100%">📥 .icsファイルをダウンロード</button>
+                    <div class="home-settings-panel" id="homeSettingsPanel">
+                        <div class="home-section">
+                            <h3>🔔 通知設定</h3>
+                            <div id="notifyStatusDisplay" class="notify-status unknown">確認中...</div>
+                            <p style="font-size:.75em;color:var(--text-sub);margin-bottom:10px;">ブラウザ通知はアプリを開いている間のみ動作します。閉じた状態での通知が必要な場合は.icsファイルをご利用ください</p>
+                            <button class="btn btn-outline" id="notifyToggleBtn" onclick="toggleNotification()" style="width:100%;margin-bottom:10px;display:none">通知を有効にする</button>
+                        </div>
+                        <div class="home-section">
+                            <h3>📲 カレンダー連携</h3>
+                            <p style="font-size:.8em;color:var(--text-sub);margin-bottom:10px;">未完了タスクをカレンダーアプリに登録して、OS標準のリマインダー通知を受け取れます</p>
+                            <button class="btn btn-outline" onclick="exportICS()" style="width:100%">📥 .icsファイルをダウンロード</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -526,8 +535,14 @@
     function registerServiceWorker(){if(!('serviceWorker' in navigator))return Promise.resolve(null);return navigator.serviceWorker.register('/sw.js').catch(function(e){return null;});}
 
     // =============================================
-    // 🔔 通知ステータス表示・切り替え
+    // ⚙️ ホーム設定パネルの表示切替
     // =============================================
+    function toggleHomeSettings(){
+        var panel=document.getElementById('homeSettingsPanel');
+        panel.classList.toggle('visible');
+    }
+
+    // 🔔 通知ステータス表示・切り替え
     function updateNotifyStatusDisplay(){
         var display=document.getElementById('notifyStatusDisplay');
         var toggleBtn=document.getElementById('notifyToggleBtn');
