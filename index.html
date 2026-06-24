@@ -10,20 +10,20 @@
     <meta name="theme-color" content="#4a6fa5">
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
     <style>
-        :root{--primary:#4a6fa5;--primary-light:#e8eff9;--primary-dark:#3a5a8a;--bg:#f7f8fa;--surface:#fff;--text:#2c3e50;--text-sub:#6c757d;--border:#e2e6ea;--danger:#dc3545;--warning:#ffc107;--success:#28a745;--holiday:#e91e63;--sat-bg:#e3f2fd;--sun-bg:#fce4ec;--today-bg:#fff3cd;--sidebar-w:240px}
+        :root{--primary:#4a6fa5;--primary-light:#e8eff9;--primary-dark:#3a5a8a;--bg:#f7f8fa;--surface:#fff;--text:#2c3e50;--text-sub:#6c757d;--border:#e2e6ea;--danger:#dc3545;--warning:#ffc107;--success:#28a745;--holiday:#e91e63;--sat-bg:#e3f2fd;--sun-bg:#fce4ec;--today-bg:#fff3cd;--sidebar-w:200px}
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
         html,body{height:100%;overflow:hidden}
         body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text)}
         .app-layout{display:flex;height:100vh;height:100dvh;width:100%;max-width:1600px;margin:0 auto}
         .sidebar{display:none;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);flex-direction:column;flex-shrink:0;overflow-y:auto}
-        .sidebar-brand{padding:24px 20px;font-size:1.2em;font-weight:800;color:var(--primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-        .sidebar-nav{padding:12px;flex:1;display:flex;flex-direction:column;gap:4px}
-        .sidebar-btn{display:flex;align-items:center;gap:12px;padding:12px 16px;border:none;background:transparent;border-radius:10px;cursor:pointer;font-size:.9em;font-weight:600;color:var(--text-sub);transition:all .2s;text-align:left;width:100%}
+        .sidebar-brand{padding:20px 16px;font-size:1.05em;font-weight:800;color:var(--primary);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+        .sidebar-nav{padding:10px;flex:1;display:flex;flex-direction:column;gap:3px}
+        .sidebar-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border:none;background:transparent;border-radius:8px;cursor:pointer;font-size:.85em;font-weight:600;color:var(--text-sub);transition:all .2s;text-align:left;width:100%}
         .sidebar-btn:hover{background:var(--bg);color:var(--text)}
         .sidebar-btn.active{background:var(--primary-light);color:var(--primary)}
-        .sidebar-btn .nav-icon{font-size:1.3em;width:28px;text-align:center}
-        .sidebar-footer{padding:16px;border-top:1px solid var(--border)}
-        .sidebar-auth-btn{display:flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px solid var(--border);background:transparent;border-radius:10px;cursor:pointer;font-size:.8em;font-weight:600;color:var(--text-sub);transition:all .2s;width:100%;justify-content:center}
+        .sidebar-btn .nav-icon{font-size:1.2em;width:24px;text-align:center}
+        .sidebar-footer{padding:12px;border-top:1px solid var(--border)}
+        .sidebar-auth-btn{display:flex;align-items:center;gap:6px;padding:8px 12px;border:1.5px solid var(--border);background:transparent;border-radius:8px;cursor:pointer;font-size:.75em;font-weight:600;color:var(--text-sub);transition:all .2s;width:100%;justify-content:center}
         .sidebar-auth-btn:hover{border-color:var(--primary);color:var(--primary)}
         .sidebar-auth-btn.logged-in{border-color:var(--success);color:var(--success);background:#f0fff4}
         .main-area{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
@@ -179,7 +179,7 @@
             .task-title{font-size:1em}
             .task-meta{font-size:.8em}
             .task-actions .btn{padding:8px 14px;font-size:12px}
-            .calendar-content{padding:16px}
+            .calendar-content{padding:20px}
             .fc .fc-daygrid-day-frame{min-height:120px!important;max-height:120px!important}
             .fc .fc-toolbar-title{font-size:1.4em!important}
             .fc .fc-daygrid-day-events{top:24px!important;bottom:18px!important}
@@ -192,13 +192,13 @@
             .day-task-footer .btn{flex:none}
         }
         @media(min-width:1200px){
-            :root{--sidebar-w:280px}
+            :root{--sidebar-w:220px}
             .home-content{padding:40px 60px;max-width:1000px}
             .stats{gap:20px}
             .stat-item{padding:30px 16px}
             .stat-item strong{font-size:2.5em}
             .list-content{padding:32px 48px;max-width:1000px}
-            .calendar-content{padding:24px}
+            .calendar-content{padding:28px}
             .fc .fc-daygrid-day-frame{min-height:140px!important;max-height:140px!important}
             .fc .fc-toolbar-title{font-size:1.6em!important}
             .fc .fc-daygrid-event{font-size:.75em!important}
@@ -212,7 +212,7 @@
             <div class="sidebar-brand">📋 タスク管理</div>
             <nav class="sidebar-nav">
                 <button class="sidebar-btn active" data-screen="home" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span>ホーム</span></button>
-                <button class="sidebar-btn" data-screen="list" onclick="switchScreen('list')"><span class="nav-icon">📝</span><span>タスクリスト</span></button>
+                <button class="sidebar-btn" data-screen="list" onclick="switchScreen('list')"><span class="nav-icon">📝</span><span>リスト</span></button>
                 <button class="sidebar-btn" data-screen="calendar" onclick="switchScreen('calendar')"><span class="nav-icon">📅</span><span>カレンダー</span></button>
             </nav>
             <div class="sidebar-footer">
@@ -534,15 +534,11 @@
     function dismissSyncBanner(){document.getElementById('syncBanner').classList.remove('visible');if(currentUser)localStorage.setItem('syncBannerDismissed_'+currentUser.uid,'true');}
     function registerServiceWorker(){if(!('serviceWorker' in navigator))return Promise.resolve(null);return navigator.serviceWorker.register('/sw.js').catch(function(e){return null;});}
 
-    // =============================================
-    // ⚙️ ホーム設定パネルの表示切替
-    // =============================================
     function toggleHomeSettings(){
         var panel=document.getElementById('homeSettingsPanel');
         panel.classList.toggle('visible');
     }
 
-    // 🔔 通知ステータス表示・切り替え
     function updateNotifyStatusDisplay(){
         var display=document.getElementById('notifyStatusDisplay');
         var toggleBtn=document.getElementById('notifyToggleBtn');
